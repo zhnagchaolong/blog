@@ -1,0 +1,77 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '@/layouts/Base.astro';
+import PageHeader from '@/components/layout/PageHeader.astro';
+import { pageMeta } from '@/config/site';
+import BackLink from '@/components/layout/BackLink.astro';
+
+const posts = await getCollection('posts', ({ data }) => !data.draft);
+
+// 统计每个 tag 的文章数量
+const tagMap = new Map<string, number>();
+posts.forEach(post => {
+  post.data.tags.forEach(tag => {
+    tagMap.set(tag, (tagMap.get(tag) || 0) + 1);
+  });
+});
+
+// 按字母顺序排序
+const tags = Array.from(tagMap.entries()).sort((a, b) => a[0].localeCompare(b[0], 'zh-CN'));
+---
+
+<Base title={pageMeta.tags.title} description={pageMeta.tags.description}>
+  <div class="max-w-prose-lg mx-auto">
+    <BackLink />
+
+    <PageHeader
+      label={`${pageMeta.tags.labelPrefix} / ${String(tags.length).padStart(3, '0')}`}
+      title={pageMeta.tags.heading}
+      subtitle={pageMeta.tags.subtitle.replace('{count}', String(tags.length)).replace('{total}', String(posts.length))}
+    />
+
+    <div class="animate-fade-up">
+      {/* 词典流排版：横向紧排，带上标计数 */}
+      <div class="flex flex-wrap gap-x-5 gap-y-4 leading-loose">
+        {tags.map(([tag, count]) => (
+          <a
+            href={`/tags/${tag}/`}
+            class="group inline-flex items-baseline gap-0.5 font-mono text-base text-text-secondary hover:text-accent transition-colors duration-200"
+          >
+            <span>{tag}</span>
+            <sup class="text-[10px] text-text-muted/50 group-hover:text-accent/60 transition-colors duration-200 ml-0.5">
+              {count}
+            </sup>
+          </a>
+        ))}
+      </div>
+
+      {/* 字母分隔线（当标签较多时增强可读性） */}
+      {tags.length > 10 && (
+        <div class="mt-16 pt-8 border-t border-border">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-6">
+            {Array.from(new Set(tags.map(([t]) => t.charAt(0).toUpperCase()))).sort().map(letter => (
+              <div>
+                <span class="font-mono text-sm text-text-muted/40 mb-2 block">{letter}</span>
+                <div class="space-y-1.5">
+                  {tags
+                    .filter(([t]) => t.charAt(0).toUpperCase() === letter)
+                    .map(([tag, count]) => (
+                      <a
+                        href={`/tags/${tag}/`}
+                        class="group flex items-baseline justify-between font-mono text-base text-text-secondary hover:text-accent transition-colors duration-200"
+                      >
+                        <span>{tag}</span>
+                        <span class="text-xs text-text-muted/40 group-hover:text-accent/50 transition-colors duration-200">
+                          {count}
+                        </span>
+                      </a>
+                    ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+</Base>

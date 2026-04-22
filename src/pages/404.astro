@@ -1,0 +1,18 @@
+---
+import Base from '@/layouts/Base.astro';
+import { pageMeta } from '@/config/site';
+---
+
+<Base title={pageMeta['404'].title} description={pageMeta['404'].description}>
+  <div class="min-h-[60vh] flex flex-col items-center justify-center text-center animate-fade-up">
+    <span class="font-mono text-[120px] font-bold text-text-muted/20 leading-none select-none">404</span>
+    <p class="font-sans text-fluid-lg text-text-secondary mt-4 mb-10">{pageMeta['404'].subtitle}</p>
+    <a
+      href="/"
+      class="inline-flex items-center gap-2 px-5 py-2.5 rounded-sm text-fluid-sm font-sans font-medium text-accent bg-accent-subtle border border-accent/10 hover:bg-accent/10 transition-colors duration-200"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      {pageMeta['404'].heading}
+    </a>
+  </div>
+</Base>

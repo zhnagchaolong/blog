@@ -1,0 +1,64 @@
+---
+import { postConfig } from '@/config/site';
+
+interface SeriesPost {
+  slug: string;
+  title: string;
+}
+
+interface Props {
+  seriesName: string;
+  currentSlug: string;
+  posts: SeriesPost[];
+}
+
+const { seriesName, currentSlug, posts } = Astro.props;
+
+const sortedPosts = [...posts].sort((a, b) => a.slug.localeCompare(b.slug));
+const currentIndex = sortedPosts.findIndex(p => p.slug === currentSlug);
+const total = sortedPosts.length;
+const currentNum = currentIndex + 1;
+---
+
+{posts.length > 0 && (
+  <div class="my-10 p-5 rounded-md bg-accent-subtle border border-accent/10 animate-fade-up">
+    <div class="flex items-center justify-between mb-4">
+      <span class="font-sans text-[11px] font-semibold text-accent uppercase tracking-widest">
+        {postConfig.labels.series}
+      </span>
+      <span class="font-mono text-[10px] text-accent/60">
+        {currentNum} / {total}
+      </span>
+    </div>
+
+    <h3 class="font-sans text-fluid-base font-semibold text-text-primary mb-4 tracking-tight">
+      {seriesName}
+    </h3>
+
+    <div class="space-y-2">
+      {sortedPosts.map((post, index) => {
+        const isCurrent = post.slug === currentSlug;
+        return (
+          <a
+            href={`/posts/${post.slug}/`}
+            class={`flex items-center gap-3 py-1.5 px-2 rounded-lg transition-colors duration-200 ${
+              isCurrent
+                ? 'bg-accent/10 text-accent'
+                : 'text-text-secondary hover:text-accent hover:bg-accent/5'
+            }`}
+          >
+            <span class={`font-mono text-[10px] w-5 text-center ${isCurrent ? 'text-accent' : 'text-text-muted/50'}`}>
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            <span class={`font-sans text-sm ${isCurrent ? 'font-medium' : ''} leading-snug`}>
+              {post.title}
+            </span>
+            {isCurrent && (
+              <span class="ml-auto font-mono text-[9px] text-accent/50 uppercase">{postConfig.labels.current}</span>
+            )}
+          </a>
+        );
+      })}
+    </div>
+  </div>
+)}

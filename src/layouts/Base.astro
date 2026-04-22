@@ -1,0 +1,141 @@
+---
+import { ViewTransitions } from 'astro:transitions';
+import MetaTags from '@/components/seo/MetaTags.astro';
+import JsonLd from '@/components/seo/JsonLd.astro';
+import NavDock from '@/components/navigation/NavDock.astro';
+import SearchModal from '@/components/search/SearchModal.astro';
+import MediumZoom from '@/components/effects/MediumZoom.astro';
+import ScrollToTop from '@/components/effects/ScrollToTop.astro';
+import { site } from '@/config/site';
+import '@/styles/global.css';
+
+const lang = 'zh';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  type?: string;
+  date?: Date;
+  updatedDate?: Date;
+  wordCount?: number;
+  category?: string;
+}
+
+const { title, description, image, type = 'website', date, updatedDate, wordCount, category } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || site.url);
+const ogImage = image ? new URL(image, Astro.site || site.url).toString() : undefined;
+---
+
+<!DOCTYPE html>
+<html lang={lang} class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="preload" href="/fonts/lxgwwenkai-regular.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="/fonts/jetbrains-mono-regular.woff2" as="font" type="font/woff2" crossorigin />
+    
+    <MetaTags 
+      title={title} 
+      description={description} 
+      image={image} 
+      type={type} 
+      canonical={canonicalURL} 
+      date={date} 
+      updatedDate={updatedDate} 
+    />
+    
+    <JsonLd type={type as any} data={{
+      name: title || site.name,
+      url: canonicalURL.toString(),
+      ...(type === 'article' && date ? {
+        headline: title,
+        datePublished: date.toISOString(),
+        dateModified: updatedDate?.toISOString() || date.toISOString(),
+        author: {
+          '@type': 'Person',
+          name: site.author,
+          url: Astro.site || site.url,
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: site.name,
+          logo: {
+            '@type': 'ImageObject',
+            url: new URL('/favicon.svg', Astro.site || site.url).toString(),
+          },
+        },
+        wordCount: wordCount,
+        articleSection: category,
+        image: ogImage,
+        inLanguage: site.language,
+      } : {
+        publisher: {
+          '@type': 'Organization',
+          name: site.name,
+        },
+        inLanguage: site.language,
+      }),
+    }} />
+    
+    <ViewTransitions />
+    
+    <script is:inline>
+      (function() {
+        const theme = (() => {
+          if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+            return localStorage.getItem('theme');
+          }
+          if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            return 'dark';
+          }
+          return 'light';
+        })();
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+  </head>
+  
+  <body class="min-h-screen flex flex-col transition-colors duration-300">
+    <main class="flex-1 pt-24 pb-16 px-6 transition-colors duration-300">
+      <div class="max-w-layout mx-auto w-full">
+        <slot />
+      </div>
+    </main>
+    
+    <footer class="py-10 transition-colors duration-300">
+      <div class="max-w-layout mx-auto px-6 text-center text-[11px] text-text-muted font-mono tracking-wider opacity-60">
+        © {new Date().getFullYear()} — {site.name}
+      </div>
+    </footer>
+    
+    <script>
+      function syncTheme() {
+        const saved = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDark = saved ? saved === 'dark' : prefersDark;
+        document.documentElement.classList.toggle('dark', isDark);
+      }
+
+      document.addEventListener('click', function(e) {
+        const target = e.target as HTMLElement;
+        const btn = target.closest('#theme-toggle');
+        if (!btn) return;
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      });
+
+      syncTheme();
+      document.addEventListener('astro:after-swap', syncTheme);
+    </script>
+
+    <NavDock />
+    <SearchModal />
+    <MediumZoom />
+    <ScrollToTop />
+  </body>
+</html>

@@ -1,0 +1,54 @@
+{
+  "categoryLabels": {
+    "essay": "随笔",
+    "tech": "技术",
+    "design": "设计",
+    "philosophy": "哲学"
+  },
+  "asideTypeLabels": {
+    "tip": "提示",
+    "warning": "警告",
+    "note": "备注",
+    "danger": "危险"
+  },
+  "categoryMeta": {
+    "tech": {
+      "label": "技术",
+      "description": "系统架构、前端工程与编码实践的深水区记录"
+    },
+    "design": {
+      "label": "设计",
+      "description": "界面美学、交互逻辑与视觉系统的思辨"
+    },
+    "philosophy": {
+      "label": "哲学",
+      "description": "知识管理、思维模型与慢思考的漫游"
+    },
+    "essay": {
+      "label": "随笔",
+      "description": "生活切片、观察记录与未被归类的灵感"
+    }
+  },
+  "statusConfig": {
+    "input": {
+      "label": "摄入",
+      "color": "#3B82F6",
+      "icon": "down"
+    },
+    "output": {
+      "label": "产出",
+      "color": "#065F46",
+      "icon": "up"
+    },
+    "thinking": {
+      "label": "思考中",
+      "color": "#F59E0B",
+      "icon": "circle"
+    },
+    "resting": {
+      "label": "休憩",
+      "color": "#8B8680",
+      "icon": "minus"
+    }
+  }
+}

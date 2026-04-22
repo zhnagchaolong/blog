@@ -1,0 +1,71 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '@/layouts/Base.astro';
+import PageHeader from '@/components/layout/PageHeader.astro';
+import { pageMeta } from '@/config/site';
+import BackLink from '@/components/layout/BackLink.astro';
+import { formatDate } from '@/utils/date';
+
+const memos = await getCollection('memos');
+memos.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<Base title={pageMeta.memos.title} description={pageMeta.memos.description}>
+  <div class="max-w-prose-lg mx-auto">
+    <BackLink />
+
+    <PageHeader
+      label={`${pageMeta.memos.labelPrefix} / ${String(memos.length).padStart(3, '0')}`}
+      title={pageMeta.memos.heading}
+      subtitle={pageMeta.memos.subtitle}
+    />
+
+    <div class="relative">
+      <div class="absolute left-[11px] md:left-1/2 top-0 bottom-0 w-px bg-border md:-translate-x-px"></div>
+
+      <div class="space-y-12">
+        {memos.map((memo, index) => {
+          const isEven = index % 2 === 0;
+          return (
+            <div id={memo.slug} class={`relative flex items-start scroll-mt-24 ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
+              <div class="absolute left-[11px] md:left-1/2 w-[9px] h-[9px] rounded-full bg-accent border-[2.5px] border-base -translate-x-1/2 mt-2.5 z-10 "></div>
+
+              <div class={`hidden md:flex flex-col justify-center ${isEven ? 'w-1/2 pr-10 text-right' : 'w-1/2 pl-10 text-left'}`}>
+                <time class="font-mono text-[11px] text-text-muted tracking-widest uppercase" datetime={memo.data.pubDate.toISOString()}>
+                  {formatDate(memo.data.pubDate)}
+                </time>
+                {memo.data.mood && (
+                  <span class="font-mono text-[11px] text-accent/70 mt-1">{memo.data.mood}</span>
+                )}
+              </div>
+
+              <div class={`w-full md:w-1/2 ${isEven ? 'md:pl-10' : 'md:pr-10'} pl-8`}>
+                <article class="p-5 rounded-md bg-surface border border-border/50 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ">
+                  <p class="font-sans text-lg text-text-primary leading-[1.8] mb-4 whitespace-pre-wrap">{memo.body}</p>
+
+                  <div class="flex md:hidden items-center gap-2 text-xs text-text-muted font-mono">
+                    <time datetime={memo.data.pubDate.toISOString()}>{formatDate(memo.data.pubDate)}</time>
+                    {memo.data.mood && (
+                      <>
+                        <span>&middot;</span>
+                        <span class="text-accent/80">{memo.data.mood}</span>
+                      </>
+                    )}
+                  </div>
+
+                  {memo.data.tags.length > 0 && (
+                    <div class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-border">
+                      {memo.data.tags.map(tag => (
+                        <span class="text-[11px] font-mono text-text-muted">#{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                </article>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </div>
+</Base>

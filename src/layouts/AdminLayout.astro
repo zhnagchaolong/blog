@@ -1,0 +1,24 @@
+---
+import '@/styles/global.css';
+
+interface Props {
+  title?: string;
+}
+
+const { title = '管理后台' } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="zh" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+    <link rel="preload" href="/fonts/lxgwwenkai-regular.ttf" as="font" type="font/ttf" crossorigin />
+  </head>
+  <body class="min-h-screen bg-base text-text-primary font-sans">
+    <slot />
+  </body>
+</html>

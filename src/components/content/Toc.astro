@@ -1,0 +1,31 @@
+---
+import { postConfig } from '@/config/site';
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+const tocHeadings = headings.filter(h => h.depth >= 2 && h.depth <= 3);
+---
+
+{tocHeadings.length > 0 && (
+  <nav class="mb-16 p-6 rounded-sm border border-border bg-surface hidden lg:block animate-fade-up">
+    <h2 class="font-sans text-fluid-sm font-semibold text-text-primary mb-4 tracking-wide uppercase">{postConfig.labels.tocTitle}</h2>
+    <ul class="space-y-2">
+      {tocHeadings.map(h => (
+        <li class={h.depth === 3 ? 'pl-4' : ''}>
+          <a href={`#${h.slug}`} class="font-sans text-fluid-xs text-text-secondary hover:text-accent transition-colors block py-1 border-l-2 border-transparent hover:border-accent pl-3 -ml-3">
+            {h.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}

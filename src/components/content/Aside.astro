@@ -1,0 +1,53 @@
+---
+interface Props {
+  type?: 'tip' | 'warning' | 'note' | 'danger';
+  title?: string;
+}
+
+const { type = 'note', title } = Astro.props;
+
+const typeStyles: Record<string, string> = {
+  tip: 'border-l-accent bg-accent-subtle text-accent dark:text-accent',
+  warning: 'border-l-amber-500 bg-amber-500/5 text-amber-700 dark:text-amber-400',
+  note: 'border-l-blue-500 bg-blue-500/5 text-blue-700 dark:text-blue-400',
+  danger: 'border-l-red-500 bg-red-500/5 text-red-700 dark:text-red-400',
+};
+
+import { asideTypeLabels } from '@/config/labels';
+
+const typeLabels = asideTypeLabels;
+---
+
+<!-- 
+  Aside 侧边提示栏：
+  - 左侧 4px 色带提供强语义识别
+  - bg-*/5 极淡底色避免边框盒子感，与正文形成微妙的层级差
+  - 左侧图标使用 16px SVG，与标题基线对齐
+  - font-sans 保持阅读正文的连贯性
+-->
+<aside class={`my-6 p-4 rounded-r-xl border-l-4 ${typeStyles[type]}`}>
+  <div class="flex items-start gap-3">
+    <div class="flex-shrink-0 mt-0.5">
+      {type === 'tip' && (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+      )}
+      {type === 'warning' && (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+      )}
+      {type === 'note' && (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+      )}
+      {type === 'danger' && (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      )}
+    </div>
+    <div>
+      <strong class="font-sans font-semibold text-sm block mb-1 tracking-wide">
+        {title || typeLabels[type]}
+      </strong>
+      <div class="font-sans text-[0.9375rem] leading-[1.8] opacity-90">
+        <slot />
+      </div>
+    </div>
+  </div>
+</aside>

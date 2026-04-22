@@ -1,0 +1,215 @@
+{
+  "site": {
+    "name": "思考室",
+    "description": "沉浸式个人思考室 —— 技术、设计与哲学的数字花园",
+    "url": "https://zhnagchaolong.github.io/blog",
+    "author": "博主",
+    "email": "hello@example.com",
+    "language": "zh-CN",
+    "defaultLocale": "zh",
+    "locales": ["zh", "en"]
+  },
+  "navigation": {
+    "logo": "思考室",
+    "items": [
+      { "href": "/", "label": "首页" },
+      { "href": "/posts", "label": "文章" },
+      { "href": "/now", "label": "Now" },
+      { "href": "/archive", "label": "归档" },
+      { "href": "/tags", "label": "标签" },
+      { "href": "/about", "label": "关于" }
+    ]
+  },
+  "homepage": {
+    "hero": {
+      "subtitle": "A Digital Garden",
+      "titlePrefix": "这里是一个",
+      "titleHighlight": "数字思考室",
+      "description": "记录技术实践、设计思辨与深夜的哲学漫游。主张慢阅读，拒绝信息过载。"
+    },
+    "sections": {
+      "featuredPostsTitle": "精选文章",
+      "recentMemosTitle": "最近碎念",
+      "featuredProjectsTitle": "精选项目",
+      "viewAllText": "查看全部 →"
+    },
+    "limits": {
+      "memoCount": 3
+    }
+  },
+  "postConfig": {
+    "defaults": {
+      "category": "essay",
+      "showToc": true,
+      "readingTimeFallback": "3 分钟"
+    },
+    "readingSpeed": 300,
+    "labels": {
+      "tocTitle": "目录",
+      "relatedTitle": "延伸阅读",
+      "prev": "上一篇",
+      "next": "下一篇",
+      "backToPosts": "返回文章列表",
+      "readingTimeSuffix": "阅读",
+      "updatedAtPrefix": "更新于",
+      "readingResumeText": "已回到上次阅读位置",
+      "series": "系列",
+      "current": "当前"
+    }
+  },
+  "searchConfig": {
+    "placeholder": "搜索...",
+    "emptyText": "输入关键词开始搜索",
+    "noResultText": "未找到相关结果",
+    "typeLabels": {
+      "post": "文章",
+      "memo": "碎念",
+      "project": "项目"
+    },
+    "maxResultsPerType": 8,
+    "scoreWeights": {
+      "titleMatch": 10,
+      "contentMatch": 3
+    }
+  },
+  "features": {
+    "showReadingProgress": true,
+    "showScrollToTop": true,
+    "showReadingResume": true,
+    "enableSearch": true,
+    "enableMediumZoom": true,
+    "enableOGImage": true
+  },
+  "pageMeta": {
+    "about": {
+      "title": "关于",
+      "description": "关于这间数字思考室",
+      "heading": "关于",
+      "labelPrefix": "",
+      "subtitle": "一个极客工坊负责人的侧写"
+    },
+    "archive": {
+      "title": "归档",
+      "description": "编年史：所有思考记录的时间纵轴",
+      "heading": "归档",
+      "labelPrefix": "Archive",
+      "subtitle": "共 {count} 篇记录，按时间倒序排列"
+    },
+    "ideas": {
+      "title": "主题",
+      "description": "数字私人图书馆的宏观分区",
+      "heading": "主题",
+      "labelPrefix": "Themes",
+      "subtitle": "{count} 个知识领域，{total} 篇记录"
+    },
+    "memos": {
+      "title": "碎念",
+      "description": "社交媒体式的短思考与日常记录",
+      "heading": "碎念",
+      "labelPrefix": "Memos",
+      "subtitle": "不追求结构的即时思考与灵感碎片"
+    },
+    "now": {
+      "title": "Now",
+      "description": "当下同步：此刻的输入、产出与状态",
+      "heading": "Now",
+      "labelPrefix": "Now",
+      "subtitle": "此刻正在发生什么"
+    },
+    "posts": {
+      "title": "文章归档",
+      "description": "所有深度长文的集合",
+      "heading": "文章",
+      "labelPrefix": "Posts",
+      "subtitle": "共 {count} 篇思考记录"
+    },
+    "projects": {
+      "title": "项目",
+      "description": "沉淀的项目与实验性作品",
+      "heading": "项目",
+      "labelPrefix": "Projects",
+      "subtitle": "从想法到产出的完整旅程"
+    },
+    "tags": {
+      "title": "标签索引",
+      "description": "原子化的知识网格",
+      "heading": "标签",
+      "labelPrefix": "Tags",
+      "subtitle": "共 {count} 个原子标签，{total} 篇文章"
+    },
+    "404": {
+      "title": "404",
+      "description": "页面不存在",
+      "heading": "回到首页",
+      "labelPrefix": "",
+      "subtitle": "这页笔记似乎被风吹散了"
+    },
+    "tagDetail": {
+      "title": "",
+      "description": "",
+      "heading": "",
+      "labelPrefix": "TAG",
+      "subtitle": "共 {count} 篇记录带有此标签"
+    }
+  },
+  "social": {
+    "rss": "/rss.xml"
+  },
+  "ariaLabels": {
+    "search": "搜索 (Cmd + K)",
+    "themeToggle": "切换主题",
+    "menuToggle": "菜单",
+    "scrollToTop": "回到顶部",
+    "codeCopy": "复制代码"
+  },
+  "aboutConfig": {
+    "cards": {
+      "brief": {
+        "label": "Brief",
+        "heading": "写作是为了理解自己所想",
+        "description": "不追热点，不制造焦虑。每个界面元素都经过审视，不必要的绝不添加。主张慢阅读，写十年后依然值得重读的文字。"
+      },
+      "techStack": {
+        "label": "Tech Stack",
+        "items": [
+          { "name": "Astro", "category": "Framework" },
+          { "name": "TypeScript", "category": "Language" },
+          { "name": "Tailwind CSS", "category": "Style" },
+          { "name": "Neovim", "category": "Editor" },
+          { "name": "Git", "category": "Tool" },
+          { "name": "Figma", "category": "Design" }
+        ]
+      },
+      "setup": {
+        "label": "The Desk",
+        "items": [
+          { "item": "Editor", "detail": "Neovim + tmux" },
+          { "item": "Terminal", "detail": "WezTerm + zsh" },
+          { "item": "Keyboard", "detail": "Keychron Q1 Pro" },
+          { "item": "Display", "detail": "27\" 4K + 24\" 竖屏" },
+          { "item": "OS", "detail": "macOS + Arch Linux" }
+        ]
+      },
+      "contact": {
+        "label": "Contact",
+        "description": "有意义的对话值得通过更私密的渠道发生。",
+        "buttonText": "发送邮件"
+      }
+    },
+    "quote": "沉浸式个人思考室 · Obsidian & Parchment"
+  },
+  "projectLabels": {
+    "status": {
+      "active": "进行中",
+      "wip": "开发中",
+      "archived": "已归档"
+    },
+    "linkText": "访问站点 →",
+    "githubText": "GitHub →"
+  },
+  "seo": {
+    "defaultTitleTemplate": "%s — {site.name}",
+    "defaultOgImage": "/og-default.png",
+    "twitterCardType": "summary_large_image"
+  }
+}

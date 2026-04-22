@@ -1,0 +1,212 @@
+---
+import { searchConfig } from '@/config/site';
+---
+
+<div 
+  id="search-modal" 
+  class="fixed inset-0 z-[70] hidden" 
+  aria-hidden="true"
+  data-placeholder={searchConfig.placeholder}
+  data-empty-text={searchConfig.emptyText}
+  data-no-result-text={searchConfig.noResultText}
+  data-type-post={searchConfig.typeLabels.post}
+  data-type-memo={searchConfig.typeLabels.memo}
+  data-type-project={searchConfig.typeLabels.project}
+>
+  <div class="absolute inset-0 bg-black/60" id="search-backdrop"></div>
+
+  <div class="absolute inset-0 flex flex-col items-center pt-[16vh] px-4 pb-8 overflow-y-auto">
+    <div class="w-full max-w-xl">
+      <div class="relative flex items-center gap-3 mb-6 px-5 py-4 rounded-t-lg bg-elevated border border-border border-b-0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-text-muted flex-shrink-0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input
+          id="search-input"
+          type="text"
+          placeholder={searchConfig.placeholder}
+          class="flex-1 bg-transparent outline-none text-text-primary placeholder:text-text-muted font-sans text-base"
+          autocomplete="off"
+        />
+        <kbd class="hidden sm:inline-block px-2 py-0.5 text-[11px] font-mono text-text-muted bg-elevated rounded border border-border">ESC</kbd>
+      </div>
+
+      <div id="search-results" class="hidden rounded-b-lg bg-elevated border border-border border-t-0 overflow-hidden">
+        <div class="space-y-0" id="search-results-list"></div>
+      </div>
+
+      <div id="search-empty" class="text-center py-12 rounded-b-lg bg-elevated border border-border border-t-0">
+        <p class="font-sans text-sm text-text-muted">输入关键词开始搜索</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  (function() {
+    // 动态获取元素：Astro View Transitions 会替换 DOM，缓存引用会失效
+    function getModal() { return document.getElementById('search-modal'); }
+    function getConfig() {
+      var m = getModal();
+      return m ? {
+        emptyText: m.dataset.emptyText || '输入关键词开始搜索',
+        noResultText: m.dataset.noResultText || '未找到相关结果',
+        typePost: m.dataset.typePost || '文章',
+        typeMemo: m.dataset.typeMemo || '碎念',
+        typeProject: m.dataset.typeProject || '项目',
+      } : {};
+    }
+    function getInput() { return document.getElementById('search-input'); }
+    function getResultsEl() { return document.getElementById('search-results'); }
+    function getResultsList() { return document.getElementById('search-results-list'); }
+    function getEmptyEl() { return document.getElementById('search-empty'); }
+
+    let data = { posts: [], memos: [], projects: [] };
+    let loaded = false;
+
+    async function load() {
+      if (loaded) return;
+      try {
+        const res = await fetch('/search.json');
+        data = await res.json();
+        loaded = true;
+      } catch (e) {
+        console.error('Search load failed', e);
+      }
+    }
+
+    function open() {
+      const modal = getModal();
+      const input = getInput();
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      setTimeout(function() { input && input.focus(); }, 50);
+      load();
+    }
+
+    function close() {
+      const modal = getModal();
+      const input = getInput();
+      const resultsEl = getResultsEl();
+      const emptyEl = getEmptyEl();
+      if (!modal) return;
+      modal.classList.add('hidden');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      if (input) input.value = '';
+      if (resultsEl) resultsEl.classList.add('hidden');
+      if (emptyEl) {
+        var cfg = getConfig();
+        emptyEl.innerHTML = '<p class="font-sans text-sm text-text-muted">' + (cfg.emptyText || '输入关键词开始搜索') + '</p>';
+        emptyEl.classList.remove('hidden');
+      }
+    }
+
+    function renderItem(item) {
+      if (item.type === 'post') {
+        return '<a href="/posts/' + item.slug + '/" class="block px-3 py-3 rounded-sm hover:bg-elevated transition-colors duration-150 group">' +
+          '<div class="flex items-baseline justify-between gap-4">' +
+            '<div class="font-sans text-sm font-medium text-text-primary group-hover:text-accent transition-colors truncate">' + item.title + '</div>' +
+            '<div class="text-[11px] font-mono text-text-muted shrink-0">' + (getConfig().typePost || '文章') + '</div>' +
+          '</div>' +
+          (item.description ? '<div class="font-sans text-xs text-text-secondary line-clamp-1 mt-1">' + item.description + '</div>' : '') +
+        '</a>';
+      }
+      if (item.type === 'memo') {
+        return '<a href="/memos/#' + item.slug + '" class="block px-3 py-3 rounded-sm hover:bg-elevated transition-colors duration-150 group">' +
+          '<div class="flex items-baseline justify-between gap-4">' +
+            '<div class="font-sans text-sm text-text-primary line-clamp-1 group-hover:text-accent transition-colors truncate">' + (item.content || '') + '</div>' +
+            '<div class="text-[11px] font-mono text-text-muted shrink-0">' + (getConfig().typeMemo || '碎念') + '</div>' +
+          '</div>' +
+        '</a>';
+      }
+      if (item.type === 'project') {
+        return '<a href="/projects/" class="block px-3 py-3 rounded-sm hover:bg-elevated transition-colors duration-150 group">' +
+          '<div class="flex items-baseline justify-between gap-4">' +
+            '<div class="font-sans text-sm font-medium text-text-primary group-hover:text-accent transition-colors truncate">' + item.title + '</div>' +
+            '<div class="text-[11px] font-mono text-text-muted shrink-0">' + (getConfig().typeProject || '项目') + '</div>' +
+          '</div>' +
+          (item.description ? '<div class="font-sans text-xs text-text-secondary line-clamp-1 mt-1">' + item.description + '</div>' : '') +
+        '</a>';
+      }
+      return '';
+    }
+
+    function search(query) {
+      const resultsEl = getResultsEl();
+      const resultsList = getResultsList();
+      const emptyEl = getEmptyEl();
+
+      if (!query.trim()) {
+        if (emptyEl) emptyEl.innerHTML = '<p class="font-sans text-sm text-text-muted">' + (getConfig().emptyText || '输入关键词开始搜索') + '</p>';
+        if (resultsEl) resultsEl.classList.add('hidden');
+        if (emptyEl) emptyEl.classList.remove('hidden');
+        return;
+      }
+
+      const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+
+      function score(items) {
+        return items.map(function(item) {
+          let s = 0;
+          const text = (item.title + ' ' + (item.description || '') + ' ' + (item.content || '') + ' ' + (item.tags || []).join(' ')).toLowerCase();
+          terms.forEach(function(term) {
+            if (item.title.toLowerCase().includes(term)) s += 10;
+            else if (text.includes(term)) s += 3;
+          });
+          return { item: item, score: s };
+        }).filter(function(r) { return r.score > 0; }).sort(function(a, b) { return b.score - a.score; }).slice(0, 8);
+      }
+
+      const posts = score(data.posts);
+      const memos = score(data.memos);
+      const projects = score(data.projects);
+      const allResults = posts.concat(memos, projects).sort(function(a, b) { return b.score - a.score; });
+
+      if (allResults.length === 0) {
+        if (emptyEl) emptyEl.innerHTML = '<p class="font-sans text-sm text-text-muted">' + (getConfig().noResultText || '未找到相关结果') + '</p>';
+        if (resultsEl) resultsEl.classList.add('hidden');
+        if (emptyEl) emptyEl.classList.remove('hidden');
+        return;
+      }
+
+      if (resultsList) {
+        resultsList.innerHTML = allResults.map(function(r) { return renderItem(r.item); }).join('');
+      }
+
+      if (resultsEl) resultsEl.classList.remove('hidden');
+      if (emptyEl) emptyEl.classList.add('hidden');
+    }
+
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('#search-trigger')) {
+        e.preventDefault();
+        open();
+      }
+      if (e.target.closest('#search-backdrop')) {
+        close();
+      }
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        open();
+      }
+      if (e.key === 'Escape') {
+        const modal = getModal();
+        if (modal && !modal.classList.contains('hidden')) {
+          close();
+        }
+      }
+    });
+
+    document.addEventListener('input', function(e) {
+      if (e.target && e.target.id === 'search-input') {
+        search(e.target.value);
+      }
+    });
+
+    document.addEventListener('astro:after-swap', close);
+  })();
+</script>

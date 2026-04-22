@@ -1,0 +1,38 @@
+---
+interface Props {
+  filename?: string;
+  lang?: string;
+}
+
+const { filename, lang } = Astro.props;
+---
+
+<!-- 
+  CodeHeader 代码窗体修饰器
+  - 为原生 Markdown 代码块提供「文件名片」式的元信息展示
+  - 顶部 bar 使用 elevated 背景与下方 code 形成材质分隔
+  - rounded-sm + overflow-hidden 保证 Mac 风格三圆点与代码区的一体性
+  - 在 MDX 中包裹 <pre> 使用，例如：<CodeHeader filename="config.ts"><pre>...</pre></CodeHeader>
+-->
+<div class="group my-6 rounded-sm overflow-hidden border border-border ">
+  {(filename || lang) && (
+    <div class="flex items-center justify-between px-4 py-2.5 bg-elevated border-b border-border">
+      <div class="flex items-center gap-2">
+        <span class="flex gap-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f56]"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-[#27c93f]"></span>
+        </span>
+        {filename && (
+          <span class="ml-2 font-mono text-[11px] text-text-muted">{filename}</span>
+        )}
+      </div>
+      {lang && !filename && (
+        <span class="font-mono text-[11px] text-text-muted uppercase">{lang}</span>
+      )}
+    </div>
+  )}
+  <div class="bg-code">
+    <slot />
+  </div>
+</div>

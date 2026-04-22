@@ -1,0 +1,434 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-base: 252 250 247;
+    --bg-surface: 255 255 255;
+    --bg-elevated: 245 242 237;
+    --text-primary: 44 44 44;
+    --text-secondary: 100 95 90;
+    --text-muted: 145 140 133;
+    --accent: 6 95 70;
+    --accent-hover: 4 78 59;
+    --accent-subtle: rgba(6, 95, 70, 0.08);
+    --border: 229 226 220;
+    --code-bg: 242 239 233;
+  }
+
+  html.dark {
+    --bg-base: 18 18 20;
+    --bg-surface: 28 28 30;
+    --bg-elevated: 38 38 40;
+    --text-primary: 220 220 220;
+    --text-secondary: 155 155 155;
+    --text-muted: 115 115 115;
+    --accent: 125 211 190;
+    --accent-hover: 150 230 210;
+    --accent-subtle: rgba(125, 211, 190, 0.12);
+    --border: 48 48 50;
+    --code-bg: 22 22 24;
+  }
+
+  @font-face {
+    font-family: 'LXGW WenKai';
+    src: local('LXGW WenKai'), local('LXGWWenKai-Regular'),
+         url('/fonts/lxgwwenkai-regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: 'LXGW WenKai';
+    src: local('LXGW WenKai'), local('LXGWWenKai-Bold'),
+         url('/fonts/lxgwwenkai-regular.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: 'JetBrains Mono';
+    src: local('JetBrains Mono'), local('JetBrainsMono-Regular'),
+         url('/fonts/jetbrains-mono-regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  body {
+    @apply bg-base text-text-primary antialiased transition-colors duration-300;
+    font-feature-settings: 'liga' 1, 'calt' 1;
+  }
+
+  ::selection {
+    background-color: var(--accent-subtle);
+    color: rgb(var(--accent));
+  }
+
+  /* 
+    全局滚动条消隐：
+    - width: 4px 极细拖柄，轨道全透明
+    - 拖柄使用 text-muted 的极淡版本，hover 时才稍明显
+    - 维持不打破流线沉浸感的视域防波堤
+  */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--text-muted));
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--text-secondary));
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  *:focus-visible {
+    outline: 2px solid rgb(var(--accent));
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* ============================================ */
+  /* .prose-zen：大师级阅读排版基类               */
+  /* ============================================ */
+  .prose-zen {
+    color: rgb(var(--text-primary));
+    font-size: 1.125rem;
+    line-height: 1.8;
+    max-width: 70ch;
+  }
+
+  .prose-zen > * + * {
+    margin-top: 1.5em;
+  }
+
+  /* --- 标题：Sans 无衬线，大量呼吸间距 --- */
+  .prose-zen h1 {
+    font-family: theme('fontFamily.sans');
+    font-size: clamp(1.75rem, 1.3rem + 2vw, 2.75rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-top: 0;
+    margin-bottom: 0.6em;
+    color: rgb(var(--text-primary));
+  }
+
+  .prose-zen h2 {
+    font-family: theme('fontFamily.sans');
+    font-size: clamp(1.375rem, 1.1rem + 1.2vw, 1.875rem);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    margin-top: 4rem;      /* 视觉停顿：大间距制造呼吸感 */
+    margin-bottom: 1.5rem;
+    color: rgb(var(--text-primary));
+  }
+
+  .prose-zen h3 {
+    font-family: theme('fontFamily.sans');
+    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+    font-weight: 600;
+    line-height: 1.3;
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    color: rgb(var(--text-primary));
+  }
+
+  .prose-zen h4 {
+    font-family: theme('fontFamily.sans');
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-top: 2.5rem;
+    margin-bottom: 0.75rem;
+    color: rgb(var(--text-primary));
+  }
+
+  /* --- 段落：Sans 无衬线，松弛行高 --- */
+  .prose-zen p {
+    font-family: theme('fontFamily.sans');
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+  }
+
+  /* --- 链接：细下划线，悬浮加深 --- */
+  .prose-zen a {
+    color: rgb(var(--accent));
+    text-decoration: none;
+    border-bottom: 1px solid var(--accent-subtle);
+    transition: border-color 0.2s;
+  }
+  .prose-zen a:hover {
+    border-bottom-color: rgb(var(--accent));
+  }
+
+  /* --- 粗体 --- */
+  .prose-zen strong,
+  .prose-zen b {
+    font-weight: 600;
+    color: rgb(var(--text-primary));
+  }
+
+  /* --- 列表 --- */
+  .prose-zen ul,
+  .prose-zen ol {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    padding-left: 1.75em;
+  }
+  .prose-zen ul {
+    list-style-type: disc;
+  }
+  .prose-zen ol {
+    list-style-type: decimal;
+  }
+  .prose-zen li {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    padding-left: 0.25em;
+  }
+  .prose-zen li::marker {
+    color: rgb(var(--text-muted));
+  }
+
+  /* ============================================ */
+  /* Blockquote：斜粗干线衬线体，从黑体中浮出     */
+  /* ============================================ */
+  .prose-zen blockquote {
+    position: relative;
+    margin: 2.5em 0;
+    padding: 1.25em 1.5em;
+    padding-left: 1.75rem;
+    font-family: theme('fontFamily.sans');
+    font-style: italic;
+    font-weight: 700;
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: rgb(var(--text-secondary));
+    border-left: 3px solid rgb(var(--accent));
+    background: linear-gradient(to right, var(--accent-subtle), transparent);
+    border-radius: 0 0.375rem 0.375rem 0;
+  }
+  .prose-zen blockquote p {
+    margin: 0;
+    font-family: inherit;
+    font-style: inherit;
+    font-weight: inherit;
+    color: inherit;
+  }
+  .prose-zen blockquote p::before {
+    content: '\300C';
+    opacity: 0.4;
+    margin-right: 0.25em;
+  }
+  .prose-zen blockquote p::after {
+    content: '\300D';
+    opacity: 0.4;
+    margin-left: 0.25em;
+  }
+
+  /* ============================================ */
+  /* 图片：极淡阴影 + 边框 + 圆角切边              */
+  /* ============================================ */
+  .prose-zen img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 2em auto;
+    border-radius: 0.125rem;
+    border: 1px solid rgb(var(--border));
+    transition: border-color 0.3s;
+  }
+  .prose-zen img:hover {
+    border-color: rgb(var(--text-muted));
+  }
+
+  /* ============================================ */
+  /* 代码：内联 + 代码块（高定时版）              */
+  /* ============================================ */
+  .prose-zen code {
+    font-family: theme('fontFamily.mono');
+    font-size: 0.875em;
+    font-weight: 500;
+    padding: 0.2em 0.4em;
+    border-radius: 0.125rem;
+    background: rgb(var(--code-bg));
+    color: rgb(var(--accent));
+    word-break: break-word;
+  }
+
+  .prose-zen pre {
+    position: relative;
+    margin: 2em 0;
+    padding: 2.75rem 1.25rem 1.25rem;
+    overflow-x: auto;
+    border-radius: 0.375rem;
+    background: rgb(var(--code-bg));
+    border: 1px solid rgb(var(--border));
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+
+  /* Mac OS 三色按钮小光点 */
+  .prose-zen pre::before {
+    content: '';
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 50%;
+    background: #ff5f56;
+    box-shadow: 1.125rem 0 0 #ffbd2e, 2.25rem 0 0 #27c93f;
+    z-index: 1;
+  }
+
+  .prose-zen pre code {
+    display: block;
+    background: transparent !important;
+    color: rgb(var(--text-primary));
+    padding: 0;
+    font-size: inherit;
+    font-weight: 400;
+    line-height: inherit;
+    word-break: normal;
+  }
+
+  /* 代码复制按钮 */
+  .code-copy-btn {
+    position: absolute;
+    top: 0.75rem;
+    right: 1rem;
+    padding: 0.375rem;
+    border-radius: 0.375rem;
+    background: rgb(var(--bg-elevated));
+    color: rgb(var(--text-secondary));
+    border: 1px solid rgb(var(--border));
+    opacity: 0;
+    transition: opacity 0.2s, color 0.2s, background 0.2s;
+    cursor: pointer;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .prose-zen pre:hover .code-copy-btn {
+    opacity: 1;
+  }
+  .code-copy-btn:hover {
+    color: rgb(var(--text-primary));
+    background: rgb(var(--bg-surface));
+  }
+
+  /* --- 分隔线 --- */
+  .prose-zen hr {
+    margin: 3em 0;
+    border: 0;
+    border-top: 1px solid rgb(var(--border));
+  }
+
+  /* --- 表格 --- */
+  .prose-zen table {
+    width: 100%;
+    margin: 2em 0;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+  .prose-zen th,
+  .prose-zen td {
+    padding: 0.625em 1em;
+    border-bottom: 1px solid rgb(var(--border));
+    text-align: left;
+  }
+  .prose-zen th {
+    font-family: theme('fontFamily.sans');
+    font-weight: 600;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgb(var(--text-muted));
+  }
+  .prose-zen td {
+    font-family: theme('fontFamily.sans');
+    color: rgb(var(--text-secondary));
+  }
+
+  /* ============================================ */
+  /* 注脚 (Footnotes)                             */
+  /* ============================================ */
+  .prose-zen .footnotes {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgb(var(--border));
+  }
+  .prose-zen .footnotes ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: footnote;
+  }
+  .prose-zen .footnotes li {
+    position: relative;
+    padding-left: 1.75rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: rgb(var(--text-secondary));
+    font-family: theme('fontFamily.sans');
+  }
+  .prose-zen .footnotes li::before {
+    counter-increment: footnote;
+    content: counter(footnote) '.';
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-family: theme('fontFamily.mono');
+    font-size: 0.75rem;
+    color: rgb(var(--accent));
+  }
+  .prose-zen .footnotes li p {
+    margin: 0;
+  }
+  .prose-zen .footnotes li a[data-footnote-backref] {
+    margin-left: 0.5rem;
+    font-size: 0.75rem;
+    color: rgb(var(--text-muted));
+    text-decoration: none;
+    transition: color 0.2s;
+    border-bottom: none;
+  }
+  .prose-zen .footnotes li a[data-footnote-backref]:hover {
+    color: rgb(var(--accent));
+  }
+  .prose-zen sup a[href^="#user-content-fn-"] {
+    display: inline-block;
+    padding: 0 0.25rem;
+    margin: 0 0.125rem;
+    font-family: theme('fontFamily.mono');
+    font-size: 0.7em;
+    line-height: 1;
+    color: rgb(var(--accent));
+    text-decoration: none;
+    border-bottom: none;
+    transition: background 0.2s;
+    border-radius: 0.125rem;
+  }
+  .prose-zen sup a[href^="#user-content-fn-"]:hover {
+    background: var(--accent-subtle);
+  }
+}
+
+

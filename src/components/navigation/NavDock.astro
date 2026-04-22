@@ -1,0 +1,172 @@
+---
+import { navigation, ariaLabels } from '@/config/site';
+
+const currentPath = Astro.url.pathname;
+
+const navItems = navigation.items;
+
+function isActive(href: string) {
+  if (href === '/') return currentPath === '/';
+  return currentPath.startsWith(href);
+}
+---
+
+<nav
+  id="nav-header"
+  class="fixed top-0 left-0 right-0 z-50 transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]"
+  data-visible="true"
+>
+  <div class="max-w-layout mx-auto px-4 md:px-6">
+    <div class="flex items-center justify-between h-16 px-3 md:px-5 transition-colors duration-300">
+
+      <a href="/" class="font-sans text-2xl font-bold text-text-primary tracking-tight shrink-0 mr-6 hover:text-accent transition-colors duration-200">
+        {navigation.logo}
+      </a>
+
+      <div class="hidden md:flex items-center gap-1">
+        {navItems.map((item) => (
+          <a
+            href={item.href}
+            class={`relative px-3 py-1.5 text-lg font-sans font-large transition-colors duration-200 rounded-sm ${
+              isActive(item.href)
+                ? 'text-accent'
+                : 'text-text-secondary hover:text-text-primary'
+            }`}
+            data-active={isActive(item.href)}
+          >
+            {item.label}
+          </a>
+        ))}
+      </div>
+
+      <div class="flex items-center gap-0.5">
+        <button
+          id="search-trigger"
+          class="p-2 rounded-sm hover:bg-elevated text-text-muted hover:text-text-primary transition-all duration-200"
+          aria-label={ariaLabels.search}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </button>
+
+        <button
+          id="theme-toggle"
+          class="p-2 rounded-sm hover:bg-elevated text-text-muted hover:text-text-primary transition-all duration-200"
+          aria-label={ariaLabels.themeToggle}
+        >
+          <svg id="theme-icon-light" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg id="theme-icon-dark" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+
+        <button
+          id="mobile-menu-toggle"
+          class="md:hidden p-2 rounded-sm hover:bg-elevated text-text-muted hover:text-text-primary transition-all duration-200"
+          aria-label={ariaLabels.menuToggle}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="mobile-menu" class="md:hidden hidden mt-1 bg-surface border border-border rounded-sm p-2">
+      {navItems.map((item) => (
+        <a
+          href={item.href}
+          class="flex items-center justify-between px-4 py-2.5 rounded-sm text-base font-sans font-medium text-text-secondary hover:text-accent transition-colors duration-200"
+          data-active={isActive(item.href)}
+        >
+          <span>{item.label}</span>
+        </a>
+      ))}
+    </div>
+  </div>
+</nav>
+
+<script>
+  (function() {
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    let hiddenAt = 0;
+
+    function handleScroll() {
+      const header = document.getElementById('nav-header');
+      if (!header) return;
+      const currentScrollY = window.scrollY;
+      const isScrollingUp = currentScrollY < lastScrollY;
+      lastScrollY = currentScrollY;
+
+      if (currentScrollY < 50) {
+        header.dataset.visible = 'true';
+        hiddenAt = 0;
+      } else if (!isScrollingUp && currentScrollY > 100) {
+        header.dataset.visible = 'false';
+        if (hiddenAt === 0) hiddenAt = currentScrollY;
+      } else if (isScrollingUp && hiddenAt > 0 && hiddenAt - currentScrollY > 60) {
+        header.dataset.visible = 'true';
+        hiddenAt = 0;
+      }
+      ticking = false;
+    }
+
+    window.addEventListener('scroll', function() {
+      if (!ticking) {
+        requestAnimationFrame(handleScroll);
+        ticking = true;
+      }
+    }, { passive: true });
+
+    document.addEventListener('astro:after-swap', function() {
+      lastScrollY = window.scrollY;
+      hiddenAt = 0;
+      const header = document.getElementById('nav-header');
+      if (header) header.dataset.visible = 'true';
+    });
+
+    document.addEventListener('click', function(e) {
+      const target = e.target as HTMLElement;
+      const toggle = target.closest('#mobile-menu-toggle');
+      const menu = document.getElementById('mobile-menu');
+      if (!toggle || !menu) return;
+      menu.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', function(e) {
+      const target = e.target as HTMLElement;
+      const menu = document.getElementById('mobile-menu');
+      const toggle = document.getElementById('mobile-menu-toggle');
+      if (!menu || !toggle) return;
+      if (!menu.contains(target) && !toggle.contains(target)) {
+        menu.classList.add('hidden');
+      }
+    });
+
+    function syncThemeIcon() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const lightIcon = document.getElementById('theme-icon-light');
+      const darkIcon = document.getElementById('theme-icon-dark');
+      if (lightIcon) lightIcon.classList.toggle('hidden', !isDark);
+      if (darkIcon) darkIcon.classList.toggle('hidden', isDark);
+    }
+
+    syncThemeIcon();
+    document.addEventListener('astro:after-swap', syncThemeIcon);
+
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.attributeName === 'class') {
+          syncThemeIcon();
+        }
+      });
+    });
+    observer.observe(document.documentElement, { attributes: true });
+  })();
+</script>
+
+<style>
+  #nav-header[data-visible="false"] {
+    transform: translateY(-120%);
+  }
+  #nav-header[data-visible="true"] {
+    transform: translateY(0);
+  }
+</style>

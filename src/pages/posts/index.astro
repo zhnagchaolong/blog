@@ -1,0 +1,102 @@
+﻿---
+import { getCollection } from 'astro:content';
+import Base from '@/layouts/Base.astro';
+import PageHeader from '@/components/layout/PageHeader.astro';
+import BackLink from '@/components/layout/BackLink.astro';
+import { getReadingTime } from '@/utils/readingTime';
+import { categoryLabels } from '@/config/labels';
+import { pageMeta } from '@/config/site';
+
+const posts = await getCollection('posts', ({ data }) => !data.draft);
+posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const postsByYear = posts.reduce((acc, post) => {
+  const year = post.data.pubDate.getFullYear();
+  if (!acc[year]) acc[year] = [];
+  acc[year].push(post);
+  return acc;
+}, {} as Record<number, typeof posts>);
+
+const years = Object.keys(postsByYear).sort((a, b) => Number(b) - Number(a));
+
+---
+
+<Base title={pageMeta.posts.title} description={pageMeta.posts.description}>
+  <div class="max-w-prose-lg mx-auto">
+    <BackLink />
+
+    <PageHeader
+      label={`${pageMeta.posts.labelPrefix} / ${String(posts.length).padStart(3, '0')}`}
+      title={pageMeta.posts.heading}
+      subtitle={pageMeta.posts.subtitle.replace('{count}', String(posts.length))}
+    />
+
+    <div class="pb-24">
+      {years.map(year => (
+        <section class="mb-20 last:mb-0">
+
+          <!-- 年份：极淡 -->
+          <div class="flex items-baseline gap-3 mb-3">
+            <span class="font-mono text-[13px] font-light text-text-muted tracking-wider tabular-nums">
+              {year}
+            </span>
+          </div>
+
+          <!-- 全宽极细分界线 -->
+          <div class="w-full h-px bg-border mb-10"></div>
+
+          <!-- 文章列表：无框，大间距 -->
+          <div class="space-y-14">
+            {postsByYear[Number(year)].map(post => (
+              <a
+                href={`/posts/${post.slug}/`}
+                class="group block"
+              >
+                <div class="flex items-start gap-6 md:gap-10">
+                  <!-- 日期 -->
+                  <time
+                    class="font-mono text-xs text-text-muted w-12 shrink-0 pt-1.5 tabular-nums"
+                    datetime={post.data.pubDate.toISOString()}
+                  >
+                    {post.data.pubDate.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }).replace(/\//g, '.')}
+                  </time>
+
+                  <!-- 内容 -->
+                  <div class="flex-1 min-w-0">
+                    <!-- 标题：hover 下划线 -->
+                    <span class="relative inline-block">
+                      <span class="font-sans text-lg font-normal text-text-primary group-hover:text-accent transition-colors duration-300 leading-snug">
+                        {post.data.title}
+                      </span>
+                      <span class="absolute left-0 -bottom-0.5 h-px bg-accent transition-all duration-300 w-0 group-hover:w-full"></span>
+                    </span>
+
+                    <!-- 摘要 -->
+                    <p class="font-sans text-base text-text-secondary mt-2.5 leading-relaxed max-w-xl">
+                      {post.data.description}
+                    </p>
+
+                    <!-- 元信息 -->
+                    <div class="flex items-center gap-4 mt-3">
+                      <span class="font-mono text-xs text-text-muted">
+                        {categoryLabels[post.data.category] || post.data.category}
+                      </span>
+                      {post.data.series && (
+                        <span class="font-mono text-xs text-text-muted">
+                          {post.data.series}
+                        </span>
+                      )}
+                      <span class="font-mono text-xs text-text-muted">
+                        {getReadingTime(post.body)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </div>
+</Base>

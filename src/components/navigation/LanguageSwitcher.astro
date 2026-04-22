@@ -1,0 +1,17 @@
+---
+import { defaultLang, type Lang } from '@/i18n/ui';
+
+const currentLang = (Astro.currentLocale || defaultLang) as Lang;
+const targetLang = currentLang === 'zh' ? 'en' : 'zh';
+const targetUrl = targetLang === defaultLang
+  ? Astro.url.pathname.replace(/^\/en/, '') || '/'
+  : `/en${Astro.url.pathname}`;
+---
+
+<a
+  href={targetUrl}
+  class="p-2 rounded-sm hover:bg-elevated text-text-muted hover:text-text-primary transition-all duration-200 font-mono text-[11px]"
+  aria-label={currentLang === 'zh' ? 'Switch to English' : '切换到中文'}
+>
+  {currentLang === 'zh' ? 'EN' : '中'}
+</a>

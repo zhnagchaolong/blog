@@ -1,0 +1,225 @@
+---
+import Base from './Base.astro';
+import Prose from '@/components/content/Prose.astro';
+import Toc from '@/components/content/Toc.astro';
+import ReadingProgress from '@/components/content/ReadingProgress.astro';
+import CodeCopy from '@/components/content/CodeCopy.astro';
+import SeriesNav from '@/components/content/SeriesNav.astro';
+import { formatDate } from '@/utils/date';
+import { categoryLabels } from '@/config/labels';
+import { postConfig } from '@/config/site';
+
+interface RelatedPost {
+  slug: string;
+  title: string;
+  description: string;
+}
+
+interface AdjacentPost {
+  slug: string;
+  title: string;
+}
+
+interface SeriesPost {
+  slug: string;
+  title: string;
+}
+
+interface Props {
+  title: string;
+  description: string;
+  pubDate: Date;
+  updatedDate?: Date;
+  toc?: boolean;
+  headings?: Array<{ depth: number; slug: string; text: string }>;
+  relatedPosts?: RelatedPost[];
+  tags?: string[];
+  category?: string;
+  prevPost?: AdjacentPost | null;
+  nextPost?: AdjacentPost | null;
+  readingTime?: string;
+  wordCount?: number;
+  ogImage?: string;
+  series?: string;
+  seriesPosts?: SeriesPost[];
+
+}
+
+const { title, description, pubDate, updatedDate, toc = true, headings = [], relatedPosts = [], tags = [], category = 'essay', prevPost = null, nextPost = null, readingTime = '3 分钟', wordCount, ogImage, series, seriesPosts = [] } = Astro.props;
+---
+
+<Base title={title} description={description} type="article" date={pubDate} updatedDate={updatedDate} wordCount={wordCount} category={category} image={ogImage}>
+  <ReadingProgress />
+  <CodeCopy />
+
+  <!-- 阅读位置恢复提示 -->
+  <div
+    id="reading-resume"
+    class="fixed top-4 left-1/2 -translate-x-1/2 z-40 px-4 py-1.5 rounded-sm bg-accent-subtle border border-accent/10 text-[11px] font-sans text-accent opacity-0 translate-y-2 transition-all duration-500 pointer-events-none"
+  >
+    {postConfig.labels.readingResumeText}  </div>
+
+  <div class="max-w-prose-lg mx-auto">
+    <article>
+      <header class="mb-16 animate-fade-up">
+        <a
+          href="/posts"
+          class="inline-flex items-center text-text-muted hover:text-accent transition-colors duration-200 mb-5 group"
+          title={postConfig.labels.backToPosts}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform duration-200 group-hover:-translate-x-0.5"><path d="m15 18-6-6 6-6"/></svg>
+        </a>
+
+        <div class="flex items-center gap-3 mb-6">
+          <span class="px-3 py-1 rounded-sm text-fluid-xs font-sans font-medium bg-accent-subtle text-accent border border-accent/10">
+            {categoryLabels[category] || postConfig.defaults.category}
+          </span>
+        </div>
+
+        <h1 class="font-sans text-fluid-2xl font-bold text-text-primary mb-6 tracking-tight leading-[1.15]">
+          {title}
+        </h1>
+
+        <p class="font-sans text-fluid-lg text-text-secondary mb-8 leading-relaxed">
+          {description}
+        </p>
+
+        <div class="flex flex-wrap items-center gap-4 text-xs text-text-muted font-mono">
+          <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+          <span>&middot;</span>
+          <span>{readingTime}{postConfig.labels.readingTimeSuffix}</span>
+          {updatedDate && (
+            <>
+              <span>&middot;</span>
+              <span>{postConfig.labels.updatedAtPrefix} <time datetime={updatedDate.toISOString()}>{formatDate(updatedDate)}</time></span>
+            </>
+          )}
+        </div>
+
+        {tags.length > 0 && (
+          <div class="flex flex-wrap gap-3 mt-6">
+            {tags.map(tag => (
+              <a
+                href={`/tags/${tag}/`}
+                class="font-mono text-[11px] text-text-muted/50 hover:text-accent transition-colors duration-200"
+              >
+                [ {tag} ]
+              </a>
+            ))}
+          </div>
+        )}
+      </header>
+
+      {series && seriesPosts.length > 0 && (
+        <SeriesNav seriesName={series} currentSlug={Astro.url.pathname.replace(/\/posts\/(.*)\/$/, '$1')} posts={seriesPosts} />
+      )}
+
+      {toc && headings.length > 0 && <Toc headings={headings} />}
+
+      <Prose>
+        <slot />
+      </Prose>
+
+      {series && seriesPosts.length > 0 && (
+        <SeriesNav seriesName={series} currentSlug={Astro.url.pathname.replace(/\/posts\/(.*)\/$/, '$1')} posts={seriesPosts} />
+      )}
+
+      {relatedPosts.length > 0 && (
+        <section class="mt-24 pt-12 border-t border-border animate-fade-up">
+          <h2 class="font-sans text-fluid-xl font-bold mb-8 text-text-primary tracking-tight">{postConfig.labels.relatedTitle}</h2>
+          <div class="grid gap-5">
+            {relatedPosts.map(post => (
+              <a
+                href={`/posts/${post.slug}/`}
+                class="group block p-6 rounded-md bg-surface border border-border/50 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] "
+              >
+                <h3 class="font-sans text-fluid-base font-semibold text-text-primary group-hover:text-accent transition-colors duration-300 mb-2 tracking-tight leading-snug">
+                  {post.title}
+                </h3>
+                <p class="font-sans text-fluid-sm text-text-secondary/80 line-clamp-2 leading-[1.8]">
+                  {post.description}
+                </p>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <div class="mt-12 flex justify-center animate-fade-up">
+        <a
+          href="/posts"
+          class="inline-flex items-center p-3 rounded-sm text-text-muted hover:text-accent hover:bg-elevated transition-all duration-200 group"
+          title={postConfig.labels.backToPosts}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform duration-200 group-hover:-translate-x-0.5"><path d="m15 18-6-6 6-6"/></svg>
+        </a>
+      </div>
+
+      {(prevPost || nextPost) && (
+        <nav class="mt-8 pt-8 border-t border-border animate-fade-up">
+          <div class="grid md:grid-cols-2 gap-5">
+            {prevPost ? (
+              <a href={`/posts/${prevPost.slug}/`} class="group flex flex-col p-6 rounded-md bg-surface border border-border/50 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ">
+                <span class="font-sans text-fluid-xs text-text-muted mb-2 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                  {postConfig.labels.prev}                </span>
+                <span class="font-sans text-fluid-base font-semibold text-text-primary group-hover:text-accent transition-colors duration-300 leading-snug">{prevPost.title}</span>
+              </a>
+            ) : (
+              <div />
+            )}
+            {nextPost ? (
+              <a href={`/posts/${nextPost.slug}/`} class="group flex flex-col items-end p-6 rounded-md bg-surface border border-border/50 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:text-right">
+                <span class="font-sans text-fluid-xs text-text-muted mb-2 flex items-center gap-2">
+                  {postConfig.labels.next}                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                </span>
+                <span class="font-sans text-fluid-base font-semibold text-text-primary group-hover:text-accent transition-colors duration-300 leading-snug">{nextPost.title}</span>
+              </a>
+            ) : (
+              <div />
+            )}
+          </div>
+        </nav>
+      )}
+    </article>
+  </div>
+
+  <script is:inline>
+    (function() {
+      const key = 'scroll-pos:' + location.pathname;
+      const banner = document.getElementById('reading-resume');
+
+      function restore() {
+        const saved = localStorage.getItem(key);
+        if (saved) {
+          const y = parseInt(saved, 10);
+          if (y > 100) {
+            requestAnimationFrame(function() {
+              window.scrollTo({ top: y, behavior: 'instant' });
+              if (banner) {
+                banner.classList.remove('opacity-0', 'translate-y-2');
+                setTimeout(function() {
+                  banner.classList.add('opacity-0', 'translate-y-2');
+                }, 3000);
+              }
+            });
+          }
+        }
+      }
+
+      restore();
+      document.addEventListener('astro:after-swap', restore);
+
+      let ticking = false;
+      window.addEventListener('scroll', function() {
+        if (!ticking) {
+          requestAnimationFrame(function() {
+            localStorage.setItem(key, String(window.scrollY));
+            ticking = false;
+          });
+          ticking = true;
+        }
+      }, { passive: true });
+    })();
+  </script>
+</Base>

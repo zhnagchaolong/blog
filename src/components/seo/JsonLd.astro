@@ -1,0 +1,23 @@
+---
+interface Props {
+  type: 'website' | 'article' | 'person';
+  data?: Record<string, any>;
+}
+
+const { type, data = {} } = Astro.props;
+
+const base: Record<string, any> = {
+  '@context': 'https://schema.org',
+  '@type': type === 'article' ? 'BlogPosting' : type === 'person' ? 'Person' : 'WebSite',
+};
+
+// 如果是文章，确保有 headline 字段（headline 是 BlogPosting 的必需/推荐字段）
+const json = { ...base, ...data };
+
+// 如果文章有 image 但没有 thumbnailUrl/thumbnail，补全
+if (type === 'article' && json.image && !json.thumbnailUrl) {
+  json.thumbnailUrl = json.image;
+}
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(json)} />

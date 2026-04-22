@@ -1,0 +1,78 @@
+---
+import { getCollection } from 'astro:content';
+import PostLayout from '@/layouts/Post.astro';
+import { getReadingTime } from '@/utils/readingTime';
+
+export async function getStaticPaths() {
+  const allPosts = await getCollection('posts', ({ data }) => !data.draft);
+  allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+  return allPosts.map((post, index) => ({
+    params: { slug: post.slug },
+    props: { 
+      post,
+      allPosts: allPosts.map(p => ({
+        slug: p.slug,
+        title: p.data.title,
+        description: p.data.description,
+        tags: p.data.tags,
+        series: p.data.series,
+        relatedPosts: p.data.relatedPosts,
+        pubDate: p.data.pubDate,
+      })),
+      currentIndex: index,
+    },
+  }));
+}
+
+const { post, allPosts, currentIndex } = Astro.props;
+const { Content, headings } = await post.render();
+
+const prevPost = currentIndex > 0 ? {
+  slug: allPosts[currentIndex - 1].slug,
+  title: allPosts[currentIndex - 1].title,
+} : null;
+const nextPost = currentIndex < allPosts.length - 1 ? {
+  slug: allPosts[currentIndex + 1].slug,
+  title: allPosts[currentIndex + 1].title,
+} : null;
+
+const related = allPosts
+  .filter(p => post.data.relatedPosts.includes(p.slug) && p.slug !== post.slug)
+  .map(p => ({ slug: p.slug, title: p.title, description: p.description }));
+
+const readingTime = getReadingTime(post.body);
+
+// 字数统计：中文字符 + 英文单词
+const cnChars = post.body.match(/[\u4e00-\u9fa5]/g)?.length || 0;
+const enWords = post.body.match(/[a-zA-Z]+/g)?.length || 0;
+const wordCount = cnChars + enWords;
+
+// 同系列文章
+const seriesPosts = post.data.series
+  ? allPosts
+      .filter(p => p.series === post.data.series)
+      .map(p => ({ slug: p.slug, title: p.title }))
+  : [];
+---
+
+<PostLayout 
+  title={post.data.title} 
+  description={post.data.description}
+  pubDate={post.data.pubDate}
+  updatedDate={post.data.updatedDate}
+  toc={post.data.toc}
+  headings={headings}
+  relatedPosts={related}
+  tags={post.data.tags}
+  category={post.data.category}
+  prevPost={prevPost}
+  nextPost={nextPost}
+  readingTime={readingTime}
+  wordCount={wordCount}
+  ogImage={`/og/${post.slug}.png`}
+  series={post.data.series}
+  seriesPosts={seriesPosts}
+>
+  <Content />
+</PostLayout>

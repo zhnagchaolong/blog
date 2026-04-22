@@ -1,0 +1,1419 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import siteData from '@/config/site.json';
+import labelsData from '@/config/labels.json';
+import { getCollection } from 'astro:content';
+
+const initialData = JSON.stringify({ site: siteData, labels: labelsData });
+
+const posts = await getCollection('posts');
+const memos = await getCollection('memos');
+const projects = await getCollection('projects');
+const now = await getCollection('now');
+
+function serializeEntry(entry) {
+  return {
+    id: entry.id,
+    slug: entry.slug,
+    body: entry.body,
+    data: Object.fromEntries(
+      Object.entries(entry.data).map(([k, v]) => {
+        if (v instanceof Date) return [k, v.toISOString().slice(0, 10)];
+        return [k, v];
+      })
+    ),
+  };
+}
+
+const contentData = JSON.stringify({
+  posts: posts.map(serializeEntry),
+  memos: memos.map(serializeEntry),
+  projects: projects.map(serializeEntry),
+  now: now.map(serializeEntry),
+});
+
+const contentSchemas = {
+  posts: {
+    title: { type: 'string' },
+    description: { type: 'string' },
+    pubDate: { type: 'date' },
+    updatedDate: { type: 'date' },
+    category: { type: 'select', options: ['essay', 'tech', 'design', 'philosophy'] },
+    tags: { type: 'array', itemType: 'string' },
+    series: { type: 'string' },
+    relatedPosts: { type: 'array', itemType: 'string' },
+    featured: { type: 'boolean' },
+    draft: { type: 'boolean' },
+    toc: { type: 'boolean' },
+  },
+  memos: {
+    pubDate: { type: 'date' },
+    mood: { type: 'string' },
+    tags: { type: 'array', itemType: 'string' },
+  },
+  projects: {
+    title: { type: 'string' },
+    description: { type: 'string' },
+    techStack: { type: 'array', itemType: 'string' },
+    link: { type: 'string' },
+    github: { type: 'string' },
+    featured: { type: 'boolean' },
+    startDate: { type: 'date' },
+    endDate: { type: 'date' },
+    status: { type: 'select', options: ['active', 'archived', 'wip'] },
+  },
+  now: {
+    date: { type: 'date' },
+    status: { type: 'select', options: ['input', 'output', 'thinking', 'resting'] },
+    mood: { type: 'string' },
+    tags: { type: 'array', itemType: 'string' },
+    projects: { type: 'array', itemType: 'string' },
+    energy: { type: 'number' },
+  },
+};
+
+const configNavItems = [
+  { key: 'site', label: '站点设置', icon: '⚙️' },
+  { key: 'navigation', label: '导航栏', icon: '🧭' },
+  { key: 'homepage', label: '首页', icon: '🏠' },
+  { key: 'postConfig', label: '文章配置', icon: '📝' },
+  { key: 'searchConfig', label: '搜索配置', icon: '🔍' },
+  { key: 'features', label: '功能开关', icon: '🔧' },
+  { key: 'pageMeta', label: '页面 Meta', icon: '📄' },
+  { key: 'social', label: '社交媒体', icon: '🔗' },
+  { key: 'ariaLabels', label: '无障碍标签', icon: '♿' },
+  { key: 'aboutConfig', label: 'About 页面', icon: '👤' },
+  { key: 'projectLabels', label: '项目页面', icon: '🚀' },
+  { key: 'seo', label: 'SEO', icon: '🌐' },
+  { key: 'labels.categoryLabels', label: '分类标签', icon: '🏷️' },
+  { key: 'labels.asideTypeLabels', label: '提示标签', icon: '💡' },
+  { key: 'labels.categoryMeta', label: '分类元信息', icon: '📚' },
+  { key: 'labels.statusConfig', label: '状态配置', icon: '⏳' },
+];
+
+const contentNavItems = [
+  { key: 'posts', label: '文章', icon: '📝' },
+  { key: 'memos', label: '碎念', icon: '💬' },
+  { key: 'projects', label: '项目', icon: '🚀' },
+  { key: 'now', label: 'Now', icon: '⭐' },
+];
+---
+
+<AdminLayout title="管理后台">
+  <script type="application/json" id="admin-initial-data" set:html={initialData}></script>
+  <script type="application/json" id="content-initial-data" set:html={contentData}></script>
+  <script type="application/json" id="content-schemas" set:html={JSON.stringify(contentSchemas)}></script>
+
+  <!-- 登录界面 -->
+  <div id="login-view" class="min-h-screen flex items-center justify-center">
+    <div id="login-setup" class="w-full max-w-sm p-8 rounded-md bg-surface border border-border">
+      <h1 class="font-sans text-2xl font-bold text-text-primary mb-2">管理后台</h1>
+      <p class="font-sans text-sm text-text-muted mb-6">首次使用，请设置访问密码</p>
+      <input id="setup-password" type="password" placeholder="设置密码" class="w-full mb-3 px-4 py-2.5 rounded-sm bg-elevated border border-border text-text-primary placeholder:text-text-muted font-sans text-sm outline-none focus:border-accent" />
+      <input id="setup-confirm" type="password" placeholder="确认密码" class="w-full mb-4 px-4 py-2.5 rounded-sm bg-elevated border border-border text-text-primary placeholder:text-text-muted font-sans text-sm outline-none focus:border-accent" />
+      <button id="setup-btn" class="w-full py-2.5 rounded-sm bg-accent text-white font-sans text-sm font-medium hover:bg-accent-hover transition-colors">设置密码</button>
+      <p id="setup-error" class="mt-3 text-sm text-red-500 hidden"></p>
+    </div>
+
+    <div id="login-form" class="w-full max-w-sm p-8 rounded-md bg-surface border border-border hidden">
+      <h1 class="font-sans text-2xl font-bold text-text-primary mb-6">管理后台</h1>
+      <input id="login-password" type="password" placeholder="输入密码" class="w-full mb-4 px-4 py-2.5 rounded-sm bg-elevated border border-border text-text-primary placeholder:text-text-muted font-sans text-sm outline-none focus:border-accent" />
+      <button id="login-btn" class="w-full py-2.5 rounded-sm bg-accent text-white font-sans text-sm font-medium hover:bg-accent-hover transition-colors">登录</button>
+      <p id="login-error" class="mt-3 text-sm text-red-500 hidden">密码错误</p>
+    </div>
+  </div>
+
+  <!-- 管理面板 -->
+  <div id="admin-view" class="hidden h-screen flex">
+    <!-- 侧边栏 -->
+    <aside class="w-60 flex-shrink-0 border-r border-border bg-surface flex flex-col">
+      <div class="h-14 flex items-center px-5 border-b border-border">
+        <span id="sidebar-title" class="font-sans text-base font-bold text-text-primary">配置管理</span>
+      </div>
+      <!-- 视图切换 -->
+      <div class="px-3 py-2 border-b border-border">
+        <div class="flex rounded-sm bg-elevated p-0.5">
+          <button id="tab-config" class="flex-1 py-1.5 rounded-sm font-sans text-xs font-medium text-text-primary bg-surface shadow-sm transition-colors">配置</button>
+          <button id="tab-content" class="flex-1 py-1.5 rounded-sm font-sans text-xs font-medium text-text-muted hover:text-text-primary transition-colors">内容</button>
+        </div>
+      </div>
+      <!-- 配置导航 -->
+      <nav id="config-nav" class="flex-1 overflow-y-auto py-2">
+        {configNavItems.map(item => (
+          <button
+            class="nav-item w-full text-left px-5 py-2.5 font-sans text-sm text-text-secondary hover:text-text-primary hover:bg-elevated transition-colors flex items-center gap-2.5"
+            data-key={item.key}
+          >
+            <span class="text-base">{item.icon}</span>
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </nav>
+      <!-- 内容导航 -->
+      <nav id="content-nav" class="hidden flex-1 overflow-y-auto py-2">
+        {contentNavItems.map(item => (
+          <button
+            class="content-nav-item w-full text-left px-5 py-2.5 font-sans text-sm text-text-secondary hover:text-text-primary hover:bg-elevated transition-colors flex items-center gap-2.5"
+            data-key={item.key}
+          >
+            <span class="text-base">{item.icon}</span>
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </nav>
+      <div class="p-4 border-t border-border">
+        <button id="logout-btn" class="w-full py-2 rounded-sm border border-border text-text-muted font-sans text-xs hover:text-text-primary hover:bg-elevated transition-colors">
+          退出登录
+        </button>
+      </div>
+    </aside>
+
+    <!-- 主内容 -->
+    <main class="flex-1 flex flex-col min-w-0">
+      <!-- 配置管理主内容 -->
+      <div id="config-main" class="flex-1 flex flex-col min-w-0">
+        <!-- 顶部栏 -->
+        <header class="h-14 flex items-center justify-between px-6 border-b border-border bg-surface">
+          <h2 id="section-title" class="font-sans text-base font-semibold text-text-primary">站点设置</h2>
+          <div class="flex items-center gap-3">
+            <button id="export-btn" class="px-4 py-1.5 rounded-sm border border-border text-text-secondary font-sans text-xs hover:text-text-primary hover:bg-elevated transition-colors">
+              导出 JSON
+            </button>
+            <button id="toggle-github" class="px-4 py-1.5 rounded-sm bg-accent text-white font-sans text-xs font-medium hover:bg-accent-hover transition-colors">
+              推送到 GitHub
+            </button>
+          </div>
+        </header>
+
+        <!-- 表单区 -->
+        <div id="form-container" class="flex-1 overflow-y-auto p-6"></div>
+      </div>
+
+      <!-- 内容管理主内容 -->
+      <div id="content-main" class="hidden flex-1 flex flex-col min-w-0">
+        <!-- 顶部栏 -->
+        <header class="h-14 flex items-center justify-between px-6 border-b border-border bg-surface">
+          <h2 id="content-section-title" class="font-sans text-base font-semibold text-text-primary">文章</h2>
+          <div class="flex items-center gap-3">
+            <button id="new-content-btn" class="px-4 py-1.5 rounded-sm border border-border text-text-secondary font-sans text-xs hover:text-text-primary hover:bg-elevated transition-colors">
+              新建
+            </button>
+            <button id="toggle-github-content" class="px-4 py-1.5 rounded-sm bg-accent text-white font-sans text-xs font-medium hover:bg-accent-hover transition-colors">
+              推送到 GitHub
+            </button>
+          </div>
+        </header>
+
+        <div class="flex-1 flex min-w-0 overflow-hidden">
+          <!-- 内容列表 -->
+          <div id="content-list" class="w-72 flex-shrink-0 border-r border-border bg-surface overflow-y-auto py-2"></div>
+          <!-- 编辑器 -->
+          <div id="content-editor" class="flex-1 flex flex-col min-w-0 overflow-y-auto bg-surface">
+            <div id="editor-empty" class="flex-1 flex items-center justify-center text-text-muted font-sans text-sm">
+              选择一项以编辑
+            </div>
+            <div id="editor-form" class="hidden flex-1 flex flex-col min-w-0">
+              <div class="p-6 space-y-4 max-w-3xl">
+                <div id="editor-fields" class="space-y-4"></div>
+                <div class="flex flex-col gap-1.5">
+                  <label class="font-sans text-xs font-medium text-text-muted uppercase tracking-wider">正文 (Markdown)</label>
+                  <textarea id="editor-body" rows="16" class="w-full px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary font-sans text-sm outline-none focus:border-accent transition-colors font-mono leading-relaxed resize-y"></textarea>
+                </div>
+              </div>
+              <div class="p-4 border-t border-border bg-surface flex items-center justify-between">
+                <button id="delete-content-btn" class="px-4 py-1.5 rounded-sm border border-red-500/30 text-red-500 font-sans text-xs hover:bg-red-500/10 transition-colors">删除</button>
+                <div class="flex gap-2">
+                  <button id="cancel-content-btn" class="px-4 py-1.5 rounded-sm border border-border text-text-secondary font-sans text-xs hover:bg-elevated transition-colors">取消</button>
+                  <button id="save-content-btn" class="px-4 py-1.5 rounded-sm bg-accent text-white font-sans text-xs font-medium hover:bg-accent-hover transition-colors">保存</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GitHub 提交面板 -->
+      <div id="github-panel" class="hidden border-t border-border bg-surface p-4 space-y-3">
+        <div class="grid grid-cols-4 gap-3">
+          <input id="gh-repo" type="text" placeholder="username/repo" class="px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary placeholder:text-text-muted font-sans text-xs outline-none focus:border-accent" />
+          <input id="gh-branch" type="text" placeholder="分支 (默认 main)" class="px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary placeholder:text-text-muted font-sans text-xs outline-none focus:border-accent" />
+          <input id="gh-token" type="password" placeholder="GitHub PAT" class="px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary placeholder:text-text-muted font-sans text-xs outline-none focus:border-accent" />
+          <input id="gh-message" type="text" placeholder="提交信息" value="更新站点配置" class="px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary placeholder:text-text-muted font-sans text-xs outline-none focus:border-accent" />
+        </div>
+        <div class="flex items-center justify-between">
+          <p class="font-sans text-[11px] text-text-muted">PAT 仅存储在浏览器 localStorage 中</p>
+          <div class="flex gap-2">
+            <button id="gh-cancel" class="px-4 py-1.5 rounded-sm border border-border text-text-secondary font-sans text-xs hover:bg-elevated transition-colors">取消</button>
+            <button id="gh-submit" class="px-4 py-1.5 rounded-sm bg-accent text-white font-sans text-xs font-medium hover:bg-accent-hover transition-colors">提交</button>
+          </div>
+        </div>
+        <p id="gh-status" class="font-sans text-xs hidden"></p>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function() {
+      // ─── 数据层 ───
+      const raw = JSON.parse(document.getElementById('admin-initial-data').textContent);
+      let data = JSON.parse(JSON.stringify(raw)); // 深拷贝，可编辑
+      let currentSection = 'site';
+
+      // ─── 登录验证 ───
+      const HASH_KEY = 'admin_pwd_hash';
+      const TOKEN_KEY = 'admin_token';
+      let authToken = localStorage.getItem(TOKEN_KEY);
+
+      function sha256(str) {
+        const buf = new TextEncoder().encode(str);
+        return crypto.subtle.digest('SHA-256', buf).then(digest => {
+          return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+        });
+      }
+
+      async function checkAuth() {
+        const storedHash = localStorage.getItem(HASH_KEY);
+        if (!storedHash) {
+          document.getElementById('login-setup').classList.remove('hidden');
+          document.getElementById('login-form').classList.add('hidden');
+          return false;
+        }
+        if (authToken && authToken === storedHash) {
+          showAdmin();
+          return true;
+        }
+        document.getElementById('login-setup').classList.add('hidden');
+        document.getElementById('login-form').classList.remove('hidden');
+        return false;
+      }
+
+      function showAdmin() {
+        document.getElementById('login-view').classList.add('hidden');
+        document.getElementById('admin-view').classList.remove('hidden');
+        renderSection('site');
+      }
+
+      // 设置密码
+      document.getElementById('setup-btn').addEventListener('click', async function() {
+        const pwd = document.getElementById('setup-password').value;
+        const confirm = document.getElementById('setup-confirm').value;
+        const err = document.getElementById('setup-error');
+        if (!pwd || pwd.length < 4) { err.textContent = '密码至少 4 位'; err.classList.remove('hidden'); return; }
+        if (pwd !== confirm) { err.textContent = '两次密码不一致'; err.classList.remove('hidden'); return; }
+        const hash = await sha256(pwd);
+        localStorage.setItem(HASH_KEY, hash);
+        authToken = hash;
+        localStorage.setItem(TOKEN_KEY, hash);
+        showAdmin();
+      });
+
+      // 登录
+      document.getElementById('login-btn').addEventListener('click', async function() {
+        const pwd = document.getElementById('login-password').value;
+        const hash = await sha256(pwd);
+        const stored = localStorage.getItem(HASH_KEY);
+        if (hash === stored) {
+          authToken = hash;
+          localStorage.setItem(TOKEN_KEY, hash);
+          document.getElementById('login-error').classList.add('hidden');
+          showAdmin();
+        } else {
+          document.getElementById('login-error').classList.remove('hidden');
+        }
+      });
+
+      // 退出
+      document.getElementById('logout-btn').addEventListener('click', function() {
+        localStorage.removeItem(TOKEN_KEY);
+        location.reload();
+      });
+
+      // ─── 导航 ───
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('bg-elevated', 'text-text-primary'));
+          this.classList.add('bg-elevated', 'text-text-primary');
+          renderSection(this.dataset.key);
+        });
+      });
+
+      // ─── 数据操作 ───
+      function getTarget(section) {
+        if (section.startsWith('labels.')) {
+          return data.labels[section.slice(7)];
+        }
+        return data.site[section];
+      }
+
+      // ─── 表单渲染 ───
+      function renderSection(section) {
+        currentSection = section;
+        const titleMap = {};
+        document.querySelectorAll('.nav-item').forEach(b => { titleMap[b.dataset.key] = b.querySelector('span:last-child').textContent; });
+        document.getElementById('section-title').textContent = titleMap[section] || section;
+
+        const container = document.getElementById('form-container');
+        container.innerHTML = '';
+        const target = getTarget(section);
+        renderObject(target, container, section);
+      }
+
+      function renderObject(obj, container, path) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'space-y-4 max-w-2xl';
+
+        Object.entries(obj).forEach(([key, value]) => {
+          const field = renderField(key, value, path + '.' + key);
+          if (field) wrapper.appendChild(field);
+        });
+
+        container.appendChild(wrapper);
+      }
+
+      function renderField(key, value, path) {
+        const row = document.createElement('div');
+        row.className = 'flex flex-col gap-1.5';
+
+        const label = document.createElement('label');
+        label.className = 'font-sans text-xs font-medium text-text-muted uppercase tracking-wider';
+        label.textContent = key;
+        row.appendChild(label);
+
+        if (typeof value === 'string') {
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.value = value;
+          input.className = 'w-full px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary font-sans text-sm outline-none focus:border-accent transition-colors';
+          input.addEventListener('input', function() { updateValue(path, this.value); });
+          row.appendChild(input);
+        } else if (typeof value === 'number') {
+          const input = document.createElement('input');
+          input.type = 'number';
+          input.value = value;
+          input.className = 'w-full px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary font-sans text-sm outline-none focus:border-accent transition-colors';
+          input.addEventListener('input', function() { updateValue(path, Number(this.value)); });
+          row.appendChild(input);
+        } else if (typeof value === 'boolean') {
+          const wrap = document.createElement('label');
+          wrap.className = 'flex items-center gap-2 cursor-pointer';
+          const input = document.createElement('input');
+          input.type = 'checkbox';
+          input.checked = value;
+          input.className = 'w-4 h-4 accent-accent';
+          input.addEventListener('change', function() { updateValue(path, this.checked); });
+          wrap.appendChild(input);
+          const span = document.createElement('span');
+          span.className = 'font-sans text-sm text-text-secondary';
+          span.textContent = value ? '开启' : '关闭';
+          input.addEventListener('change', function() { span.textContent = this.checked ? '开启' : '关闭'; });
+          wrap.appendChild(span);
+          row.appendChild(wrap);
+        } else if (Array.isArray(value)) {
+          renderArray(value, path, row);
+        } else if (typeof value === 'object' && value !== null) {
+          const nested = document.createElement('div');
+          nested.className = 'p-4 rounded-sm bg-elevated/50 border border-border/50 space-y-3';
+          Object.entries(value).forEach(([k, v]) => {
+            const f = renderField(k, v, path + '.' + k);
+            if (f) nested.appendChild(f);
+          });
+          row.appendChild(nested);
+        }
+
+        return row;
+      }
+
+      function renderArray(arr, path, container) {
+        const list = document.createElement('div');
+        list.className = 'space-y-2';
+
+        arr.forEach((item, index) => {
+          const itemPath = path + '[' + index + ']';
+          const itemRow = document.createElement('div');
+          itemRow.className = 'flex items-start gap-2';
+
+          if (typeof item === 'string') {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = item;
+            input.className = 'flex-1 px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary font-sans text-sm outline-none focus:border-accent transition-colors';
+            input.addEventListener('input', function() { updateArrayItem(path, index, this.value); });
+            itemRow.appendChild(input);
+          } else if (typeof item === 'object') {
+            const card = document.createElement('div');
+            card.className = 'flex-1 p-3 rounded-sm bg-elevated/50 border border-border/50 space-y-2';
+            Object.entries(item).forEach(([k, v]) => {
+              const f = renderField(k, v, itemPath + '.' + k);
+              if (f) card.appendChild(f);
+            });
+            itemRow.appendChild(card);
+          }
+
+          const delBtn = document.createElement('button');
+          delBtn.textContent = '×';
+          delBtn.className = 'px-2 py-1 rounded-sm text-text-muted hover:text-red-500 hover:bg-red-500/10 font-sans text-sm transition-colors';
+          delBtn.addEventListener('click', function() { removeArrayItem(path, index); renderSection(currentSection); });
+          itemRow.appendChild(delBtn);
+
+          list.appendChild(itemRow);
+        });
+
+        const addBtn = document.createElement('button');
+        addBtn.textContent = '+ 添加项';
+        addBtn.className = 'px-3 py-1.5 rounded-sm border border-dashed border-border text-text-muted font-sans text-xs hover:text-text-primary hover:border-text-muted transition-colors';
+        addBtn.addEventListener('click', function() {
+          const first = arr[0];
+          let newItem;
+          if (typeof first === 'string') newItem = '';
+          else if (typeof first === 'object') newItem = JSON.parse(JSON.stringify(first));
+          else newItem = null;
+          addArrayItem(path, newItem);
+          renderSection(currentSection);
+        });
+
+        container.appendChild(list);
+        container.appendChild(addBtn);
+      }
+
+      // ─── 更新逻辑 ───
+      function updateValue(pathStr, value) {
+        const parts = pathStr.split('.').slice(1);
+        let target = getTarget(currentSection);
+        for (let i = 0; i < parts.length - 1; i++) {
+          const p = parts[i];
+          if (p.includes('[')) {
+            const [key, idx] = p.split('[');
+            target = target[key][parseInt(idx)];
+          } else {
+            target = target[p];
+          }
+        }
+        const last = parts[parts.length - 1];
+        if (last.includes('[')) {
+          const [key, idx] = last.split('[');
+          target[key][parseInt(idx)] = value;
+        } else {
+          target[last] = value;
+        }
+      }
+
+      function updateArrayItem(pathStr, index, value) {
+        const parts = pathStr.split('.').slice(1);
+        let target = getTarget(currentSection);
+        for (const p of parts) {
+          if (p.includes('[')) {
+            const [key, idx] = p.split('[');
+            target = target[key][parseInt(idx)];
+          } else {
+            target = target[p];
+          }
+        }
+        target[index] = value;
+      }
+
+      function removeArrayItem(pathStr, index) {
+        const parts = pathStr.split('.').slice(1);
+        let target = getTarget(currentSection);
+        for (const p of parts) {
+          if (p.includes('[')) {
+            const [key, idx] = p.split('[');
+            target = target[key][parseInt(idx)];
+          } else {
+            target = target[p];
+          }
+        }
+        target.splice(index, 1);
+      }
+
+      function addArrayItem(pathStr, item) {
+        const parts = pathStr.split('.').slice(1);
+        let target = getTarget(currentSection);
+        for (const p of parts) {
+          if (p.includes('[')) {
+            const [key, idx] = p.split('[');
+            target = target[key][parseInt(idx)];
+          } else {
+            target = target[p];
+          }
+        }
+        target.push(item);
+      }
+
+      // ─── 导出 ───
+      document.getElementById('export-btn').addEventListener('click', function() {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'site-config.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      // ─── GitHub 面板 ───
+      const ghPanel = document.getElementById('github-panel');
+      document.getElementById('toggle-github').addEventListener('click', function() {
+        ghPanel.classList.toggle('hidden');
+      });
+      document.getElementById('gh-cancel').addEventListener('click', function() {
+        ghPanel.classList.add('hidden');
+      });
+
+      // 恢复保存的 GitHub 设置
+      const savedRepo = localStorage.getItem('gh_repo');
+      const savedBranch = localStorage.getItem('gh_branch');
+      if (savedRepo) document.getElementById('gh-repo').value = savedRepo;
+      if (savedBranch) document.getElementById('gh-branch').value = savedBranch;
+
+      // ─── GitHub 提交 ───
+      document.getElementById('gh-submit').addEventListener('click', async function() {
+        const repo = document.getElementById('gh-repo').value.trim();
+        const branch = document.getElementById('gh-branch').value.trim() || 'main';
+        const token = document.getElementById('gh-token').value.trim();
+        let message = document.getElementById('gh-message').value.trim() || '更新站点配置';
+        const status = document.getElementById('gh-status');
+
+        if (!repo || !token) {
+          status.textContent = '请填写仓库名和 PAT';
+          status.className = 'font-sans text-xs text-red-500';
+          status.classList.remove('hidden');
+          return;
+        }
+
+        localStorage.setItem('gh_repo', repo);
+        localStorage.setItem('gh_branch', branch);
+
+        status.textContent = '正在提交...';
+        status.className = 'font-sans text-xs text-text-muted';
+        status.classList.remove('hidden');
+
+        const [owner, repoName] = repo.split('/');
+        if (!owner || !repoName) {
+          status.textContent = '仓库格式错误，应为 username/repo';
+          status.className = 'font-sans text-xs text-red-500';
+          return;
+        }
+
+        const isContentView = !contentMain.classList.contains('hidden');
+        const files = [];
+        if (isContentView) {
+          if (message === '更新站点配置') message = '更新内容';
+          Object.entries(contentData).forEach(([section, items]) => {
+            items.forEach(item => {
+              const filePath = `src/content/${section}/${item.slug}.md`;
+              const yaml = toFrontmatterYAML(item.data);
+              const content = `---\n${yaml}\n---\n\n${item.body || ''}`;
+              files.push({ path: filePath, content });
+            });
+          });
+        } else {
+          files.push(
+            { path: 'src/config/site.json', content: JSON.stringify(data.site, null, 2) },
+            { path: 'src/config/labels.json', content: JSON.stringify(data.labels, null, 2) },
+          );
+        }
+
+        try {
+          for (const file of files) {
+            // 获取当前文件 SHA
+            let sha = null;
+            try {
+              const res = await fetch(`https://api.github.com/repos/${owner}/${repoName}/contents/${file.path}?ref=${branch}`, {
+                headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+              });
+              if (res.ok) {
+                const info = await res.json();
+                sha = info.sha;
+              }
+            } catch (e) { /* 文件不存在，无需 SHA */ }
+
+            // 提交文件
+            const body = {
+              message: message,
+              content: btoa(unescape(encodeURIComponent(file.content))),
+              branch: branch,
+            };
+            if (sha) body.sha = sha;
+
+            const res = await fetch(`https://api.github.com/repos/${owner}/${repoName}/contents/${file.path}`, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(body),
+            });
+
+            if (!res.ok) {
+              const err = await res.json();
+              throw new Error(`${file.path}: ${err.message}`);
+            }
+          }
+
+          status.textContent = '提交成功！GitHub Actions 将自动重新构建部署。';
+          status.className = 'font-sans text-xs text-green-500';
+        } catch (err) {
+          status.textContent = '提交失败: ' + err.message;
+          status.className = 'font-sans text-xs text-red-500';
+        }
+      });
+
+      // ─── 内容管理 ───
+      const contentRaw = JSON.parse(document.getElementById('content-initial-data').textContent);
+      let contentData = JSON.parse(JSON.stringify(contentRaw));
+      const contentSchemas = JSON.parse(document.getElementById('content-schemas').textContent);
+      let currentContentSection = 'posts';
+      let currentContentItem = null;
+
+      const tabConfig = document.getElementById('tab-config');
+      const tabContent = document.getElementById('tab-content');
+      const configNav = document.getElementById('config-nav');
+      const contentNav = document.getElementById('content-nav');
+      const configMain = document.getElementById('config-main');
+      const contentMain = document.getElementById('content-main');
+      const sidebarTitle = document.getElementById('sidebar-title');
+
+      function switchView(view) {
+        if (view === 'config') {
+          tabConfig.classList.add('bg-surface', 'shadow-sm', 'text-text-primary');
+          tabConfig.classList.remove('text-text-muted');
+          tabContent.classList.remove('bg-surface', 'shadow-sm', 'text-text-primary');
+          tabContent.classList.add('text-text-muted');
+          configNav.classList.remove('hidden');
+          contentNav.classList.add('hidden');
+          configMain.classList.remove('hidden');
+          contentMain.classList.add('hidden');
+          sidebarTitle.textContent = '配置管理';
+        } else {
+          tabContent.classList.add('bg-surface', 'shadow-sm', 'text-text-primary');
+          tabContent.classList.remove('text-text-muted');
+          tabConfig.classList.remove('bg-surface', 'shadow-sm', 'text-text-primary');
+          tabConfig.classList.add('text-text-muted');
+          configNav.classList.add('hidden');
+          contentNav.classList.remove('hidden');
+          configMain.classList.add('hidden');
+          contentMain.classList.remove('hidden');
+          sidebarTitle.textContent = '内容管理';
+          renderContentList(currentContentSection);
+        }
+      }
+
+      tabConfig.addEventListener('click', () => switchView('config'));
+      tabContent.addEventListener('click', () => switchView('content'));
+
+      document.querySelectorAll('.content-nav-item').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.content-nav-item').forEach(b => b.classList.remove('bg-elevated', 'text-text-primary'));
+          this.classList.add('bg-elevated', 'text-text-primary');
+          currentContentSection = this.dataset.key;
+          const titleMap = {};
+          document.querySelectorAll('.content-nav-item').forEach(b => { titleMap[b.dataset.key] = b.querySelector('span:last-child').textContent; });
+          document.getElementById('content-section-title').textContent = titleMap[currentContentSection] || currentContentSection;
+          currentContentItem = null;
+          renderContentList(currentContentSection);
+          hideEditor();
+        });
+      });
+
+      function renderContentList(section) {
+        const list = document.getElementById('content-list');
+        list.innerHTML = '';
+        const items = contentData[section] || [];
+        items.forEach((item, index) => {
+          const btn = document.createElement('button');
+          btn.className = 'content-item w-full text-left px-5 py-2.5 font-sans text-sm text-text-secondary hover:text-text-primary hover:bg-elevated transition-colors border-b border-border/50 last:border-0';
+          let title = item.data.title || item.id || '(无标题)';
+          if (section === 'memos') title = item.data.pubDate + ' ' + (item.data.mood || '(碎念)');
+          if (section === 'now') title = item.data.date + ' ' + (item.data.status || '(Now)');
+          btn.textContent = title;
+          btn.dataset.index = index;
+          btn.addEventListener('click', function() {
+            document.querySelectorAll('.content-item').forEach(b => b.classList.remove('bg-elevated', 'text-text-primary'));
+            this.classList.add('bg-elevated', 'text-text-primary');
+            openEditor(section, index);
+          });
+          list.appendChild(btn);
+        });
+      }
+
+      function hideEditor() {
+        document.getElementById('editor-empty').classList.remove('hidden');
+        document.getElementById('editor-form').classList.add('hidden');
+      }
+
+      function openEditor(section, index) {
+        currentContentItem = { section, index };
+        const item = contentData[section][index];
+        const schema = contentSchemas[section];
+        document.getElementById('editor-empty').classList.add('hidden');
+        document.getElementById('editor-form').classList.remove('hidden');
+
+        const fieldsContainer = document.getElementById('editor-fields');
+        fieldsContainer.innerHTML = '';
+
+        Object.entries(schema).forEach(([key, fieldSchema]) => {
+          if (['cover', 'thumbnail', 'images'].includes(key)) return;
+          const row = document.createElement('div');
+          row.className = 'flex flex-col gap-1.5';
+
+          const label = document.createElement('label');
+          label.className = 'font-sans text-xs font-medium text-text-muted uppercase tracking-wider';
+          label.textContent = key;
+          row.appendChild(label);
+
+          const value = item.data[key];
+
+          if (fieldSchema.type === 'string') {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = value || '';
+            input.className = 'w-full px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary font-sans text-sm outline-none focus:border-accent transition-colors';
+            input.dataset.field = key;
+            row.appendChild(input);
+          } else if (fieldSchema.type === 'textarea') {
+            const textarea = document.createElement('textarea');
+            textarea.rows = 3;
+            textarea.value = value || '';
+            textarea.className = 'w-full px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary font-sans text-sm outline-none focus:border-accent transition-colors resize-y';
+            textarea.dataset.field = key;
+            row.appendChild(textarea);
+          } else if (fieldSchema.type === 'date') {
+            const input = document.createElement('input');
+            input.type = 'date';
+            input.value = value || '';
+            input.className = 'w-full px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary font-sans text-sm outline-none focus:border-accent transition-colors';
+            input.dataset.field = key;
+            row.appendChild(input);
+          } else if (fieldSchema.type === 'select') {
+            const select = document.createElement('select');
+            select.className = 'w-full px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary font-sans text-sm outline-none focus:border-accent transition-colors';
+            fieldSchema.options.forEach(opt => {
+              const option = document.createElement('option');
+              option.value = opt;
+              option.textContent = opt;
+              if (value === opt) option.selected = true;
+              select.appendChild(option);
+            });
+            select.dataset.field = key;
+            row.appendChild(select);
+          } else if (fieldSchema.type === 'boolean') {
+            const wrap = document.createElement('label');
+            wrap.className = 'flex items-center gap-2 cursor-pointer';
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.checked = !!value;
+            input.className = 'w-4 h-4 accent-accent';
+            input.dataset.field = key;
+            wrap.appendChild(input);
+            const span = document.createElement('span');
+            span.className = 'font-sans text-sm text-text-secondary';
+            span.textContent = value ? '开启' : '关闭';
+            input.addEventListener('change', () => { span.textContent = input.checked ? '开启' : '关闭'; });
+            wrap.appendChild(span);
+            row.appendChild(wrap);
+          } else if (fieldSchema.type === 'array') {
+            renderContentArrayField(row, key, value || [], fieldSchema);
+          } else if (fieldSchema.type === 'number') {
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.value = value !== undefined ? value : '';
+            input.className = 'w-full px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary font-sans text-sm outline-none focus:border-accent transition-colors';
+            input.dataset.field = key;
+            row.appendChild(input);
+          }
+
+          fieldsContainer.appendChild(row);
+        });
+
+        document.getElementById('editor-body').value = item.body || '';
+      }
+
+      function renderContentArrayField(container, key, values, fieldSchema) {
+        const existingList = container.querySelector(`[data-array="${key}"]`);
+        const existingBtn = container.querySelector(`button[data-array-add="${key}"]`);
+        if (existingList) existingList.remove();
+        if (existingBtn) existingBtn.remove();
+
+        const list = document.createElement('div');
+        list.className = 'space-y-2';
+        list.dataset.array = key;
+
+        values.forEach((val, idx) => {
+          const itemRow = document.createElement('div');
+          itemRow.className = 'flex items-center gap-2';
+          const input = document.createElement('input');
+          input.type = fieldSchema.itemType === 'number' ? 'number' : 'text';
+          input.value = val;
+          input.className = 'flex-1 px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary font-sans text-sm outline-none focus:border-accent transition-colors';
+          itemRow.appendChild(input);
+
+          const delBtn = document.createElement('button');
+          delBtn.textContent = '×';
+          delBtn.className = 'px-2 py-1 rounded-sm text-text-muted hover:text-red-500 hover:bg-red-500/10 font-sans text-sm transition-colors';
+          delBtn.addEventListener('click', function() {
+            const arr = getContentArrayValues(list);
+            arr.splice(idx, 1);
+            renderContentArrayField(container, key, arr, fieldSchema);
+          });
+          itemRow.appendChild(delBtn);
+          list.appendChild(itemRow);
+        });
+
+        const addBtn = document.createElement('button');
+        addBtn.textContent = '+ 添加项';
+        addBtn.dataset.arrayAdd = key;
+        addBtn.className = 'px-3 py-1.5 rounded-sm border border-dashed border-border text-text-muted font-sans text-xs hover:text-text-primary hover:border-text-muted transition-colors';
+        addBtn.addEventListener('click', function() {
+          const arr = getContentArrayValues(list);
+          arr.push(fieldSchema.itemType === 'number' ? 0 : '');
+          renderContentArrayField(container, key, arr, fieldSchema);
+        });
+
+        container.appendChild(list);
+        container.appendChild(addBtn);
+      }
+
+      function getContentArrayValues(listEl) {
+        return Array.from(listEl.querySelectorAll('input')).map(input => {
+          if (input.type === 'number') return Number(input.value);
+          return input.value;
+        });
+      }
+
+      function collectEditorData() {
+        const { section, index } = currentContentItem;
+        const item = contentData[section][index];
+        const schema = contentSchemas[section];
+        const newData = {};
+
+        Object.entries(schema).forEach(([key, fieldSchema]) => {
+          if (['cover', 'thumbnail', 'images'].includes(key)) {
+            newData[key] = item.data[key];
+            return;
+          }
+
+          if (fieldSchema.type === 'array') {
+            const listEl = document.querySelector(`[data-array="${key}"]`);
+            newData[key] = listEl ? getContentArrayValues(listEl) : (item.data[key] || []);
+          } else if (fieldSchema.type === 'boolean') {
+            const input = document.querySelector(`input[data-field="${key}"]`);
+            newData[key] = input ? input.checked : !!item.data[key];
+          } else if (fieldSchema.type === 'number') {
+            const input = document.querySelector(`input[data-field="${key}"]`);
+            newData[key] = input && input.value !== '' ? Number(input.value) : undefined;
+          } else {
+            const input = document.querySelector(`[data-field="${key}"]`);
+            newData[key] = input ? input.value : item.data[key];
+          }
+        });
+
+        const body = document.getElementById('editor-body').value;
+        return { data: newData, body };
+      }
+
+      function generateSlug(section, data) {
+        if (section === 'posts' || section === 'projects') {
+          const title = data.title || 'untitled';
+          return title.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-').replace(/^-|-$/g, '');
+        }
+        if (section === 'memos') {
+          return Date.now().toString();
+        }
+        if (section === 'now') {
+          return data.date || new Date().toISOString().slice(0, 10);
+        }
+        return 'untitled';
+      }
+
+      function toFrontmatterYAML(data) {
+        const lines = [];
+        for (const [key, value] of Object.entries(data)) {
+          if (value === undefined || value === null) continue;
+          if (Array.isArray(value)) {
+            if (value.length === 0) {
+              lines.push(`${key}: []`);
+            } else {
+              lines.push(`${key}:`);
+              value.forEach(v => {
+                const sv = String(v);
+                if (/[:#&*|>!'"%@`\[\]{}]/.test(sv) || sv.startsWith('-') || sv.startsWith(' ') || sv.startsWith('?')) {
+                  lines.push(`  - "${sv.replace(/"/g, '\\"')}"`);
+                } else {
+                  lines.push(`  - ${sv}`);
+                }
+              });
+            }
+          } else if (typeof value === 'boolean') {
+            lines.push(`${key}: ${value}`);
+          } else if (typeof value === 'number') {
+            lines.push(`${key}: ${value}`);
+          } else if (typeof value === 'string') {
+            if (value === '') {
+              lines.push(`${key}: ""`);
+            } else if (value.includes('\n')) {
+              lines.push(`${key}: |`);
+              value.split('\n').forEach(l => lines.push(`  ${l}`));
+            } else if (/[:#&*|>!'"%@`\[\]{}]/.test(value) || value.startsWith('-') || value.startsWith(' ') || value.startsWith('?')) {
+              lines.push(`${key}: "${value.replace(/"/g, '\\"')}"`);
+            } else {
+              lines.push(`${key}: ${value}`);
+            }
+          }
+        }
+        return lines.join('\n');
+      }
+
+      document.getElementById('save-content-btn').addEventListener('click', function() {
+        if (!currentContentItem) return;
+        const { section, index } = currentContentItem;
+        const { data: newData, body } = collectEditorData();
+        contentData[section][index].data = newData;
+        contentData[section][index].body = body;
+        renderContentList(section);
+        alert('已保存（仅在本地，请推送到 GitHub）');
+      });
+
+      document.getElementById('cancel-content-btn').addEventListener('click', function() {
+        hideEditor();
+        currentContentItem = null;
+        document.querySelectorAll('.content-item').forEach(b => b.classList.remove('bg-elevated', 'text-text-primary'));
+      });
+
+      document.getElementById('delete-content-btn').addEventListener('click', function() {
+        if (!currentContentItem) return;
+        const { section, index } = currentContentItem;
+        if (!confirm('确定要删除吗？')) return;
+        contentData[section].splice(index, 1);
+        hideEditor();
+        currentContentItem = null;
+        renderContentList(section);
+      });
+
+      document.getElementById('new-content-btn').addEventListener('click', function() {
+        const section = currentContentSection;
+        const schema = contentSchemas[section];
+        const newData = {};
+        Object.entries(schema).forEach(([key, fieldSchema]) => {
+          if (['cover', 'thumbnail', 'images'].includes(key)) {
+            newData[key] = fieldSchema.type === 'array' ? [] : undefined;
+            return;
+          }
+          if (fieldSchema.type === 'array') newData[key] = [];
+          else if (fieldSchema.type === 'boolean') newData[key] = false;
+          else if (fieldSchema.type === 'number') newData[key] = undefined;
+          else if (fieldSchema.type === 'select') newData[key] = fieldSchema.options[0];
+          else if (fieldSchema.type === 'date') newData[key] = new Date().toISOString().slice(0, 10);
+          else newData[key] = '';
+        });
+
+        const slug = generateSlug(section, newData);
+        const newItem = { id: slug, slug: slug, data: newData, body: '' };
+        contentData[section].push(newItem);
+        renderContentList(section);
+        const list = document.getElementById('content-list');
+        const lastBtn = list.lastElementChild;
+        if (lastBtn) lastBtn.click();
+      });
+
+      document.getElementById('toggle-github-content').addEventListener('click', function() {
+        document.getElementById('github-panel').classList.toggle('hidden');
+      });
+
+      // ─── 初始化 ───
+      checkAuth();
+    })();
+  </script>
+
+  <script>
+    (function() {
+      // ─── 内容管理 ───
+      const contentRaw = JSON.parse(document.getElementById('content-initial-data').textContent);
+      let contentData = JSON.parse(JSON.stringify(contentRaw));
+      const contentSchemas = JSON.parse(document.getElementById('content-schemas').textContent);
+      let currentCollection = 'posts';
+      let currentEditingSlug = null;
+      let isNewContent = false;
+
+      // 视图切换
+      const tabConfig = document.getElementById('tab-config');
+      const tabContent = document.getElementById('tab-content');
+      const configNav = document.getElementById('config-nav');
+      const contentNavEl = document.getElementById('content-nav');
+      const configMain = document.getElementById('config-main');
+      const contentMain = document.getElementById('content-main');
+      const sidebarTitle = document.getElementById('sidebar-title');
+
+      function switchTab(tab) {
+        if (tab === 'config') {
+          tabConfig.classList.add('bg-surface', 'shadow-sm', 'text-text-primary');
+          tabConfig.classList.remove('text-text-muted');
+          tabContent.classList.remove('bg-surface', 'shadow-sm', 'text-text-primary');
+          tabContent.classList.add('text-text-muted');
+          configNav.classList.remove('hidden');
+          contentNavEl.classList.add('hidden');
+          configMain.classList.remove('hidden');
+          contentMain.classList.add('hidden');
+          sidebarTitle.textContent = '配置管理';
+        } else {
+          tabContent.classList.add('bg-surface', 'shadow-sm', 'text-text-primary');
+          tabContent.classList.remove('text-text-muted');
+          tabConfig.classList.remove('bg-surface', 'shadow-sm', 'text-text-primary');
+          tabConfig.classList.add('text-text-muted');
+          configNav.classList.add('hidden');
+          contentNavEl.classList.remove('hidden');
+          configMain.classList.add('hidden');
+          contentMain.classList.remove('hidden');
+          sidebarTitle.textContent = '内容管理';
+          renderContentList(currentCollection);
+        }
+      }
+
+      tabConfig.addEventListener('click', function() { switchTab('config'); });
+      tabContent.addEventListener('click', function() { switchTab('content'); });
+
+      // 内容导航
+      document.querySelectorAll('.content-nav-item').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.content-nav-item').forEach(function(b) { b.classList.remove('bg-elevated', 'text-text-primary'); });
+          this.classList.add('bg-elevated', 'text-text-primary');
+          currentCollection = this.dataset.key;
+          renderContentList(currentCollection);
+          hideEditor();
+        });
+      });
+
+      function escapeHtml(text) {
+        if (!text) return '';
+        return text.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      // 渲染内容列表
+      function renderContentList(collection) {
+        const list = document.getElementById('content-list');
+        list.innerHTML = '';
+        const items = contentData[collection] || [];
+        const titleKey = collection === 'now' ? 'date' : 'title';
+
+        items.forEach(function(item) {
+          const row = document.createElement('button');
+          row.className = 'w-full text-left px-4 py-3 border-b border-border/50 font-sans text-sm text-text-secondary hover:text-text-primary hover:bg-elevated transition-colors flex items-center justify-between gap-2';
+          const title = item.data[titleKey] || item.data.title || item.slug;
+          row.innerHTML = '<span class="truncate">' + escapeHtml(title) + '</span><span class="font-mono text-[10px] text-text-muted/50 shrink-0">' + item.slug + '</span>';
+          row.addEventListener('click', function() { openEditor(collection, item.slug); });
+          list.appendChild(row);
+        });
+
+        if (items.length === 0) {
+          list.innerHTML = '<p class="px-4 py-8 text-center font-sans text-sm text-text-muted">暂无内容</p>';
+        }
+      }
+
+      // 打开编辑器
+      function openEditor(collection, slug) {
+        currentCollection = collection;
+        currentEditingSlug = slug;
+        isNewContent = false;
+        const item = contentData[collection].find(function(i) { return i.slug === slug; });
+        if (!item) return;
+
+        document.getElementById('editor-empty').classList.add('hidden');
+        document.getElementById('editor-form').classList.remove('hidden');
+
+        // 渲染 frontmatter 表单
+        const fieldsContainer = document.getElementById('editor-fields');
+        fieldsContainer.innerHTML = '';
+        const schema = contentSchemas[collection];
+        const itemData = item.data;
+
+        Object.entries(schema).forEach(function([key, config]) {
+          const field = renderContentField(key, config, itemData[key]);
+          if (field) fieldsContainer.appendChild(field);
+        });
+
+        // 设置正文
+        document.getElementById('editor-body').value = item.body || '';
+      }
+
+      function hideEditor() {
+        document.getElementById('editor-empty').classList.remove('hidden');
+        document.getElementById('editor-form').classList.add('hidden');
+        currentEditingSlug = null;
+        isNewContent = false;
+      }
+
+      function renderContentField(key, config, value) {
+        const row = document.createElement('div');
+        row.className = 'flex flex-col gap-1.5';
+        row.dataset.field = key;
+
+        const label = document.createElement('label');
+        label.className = 'font-sans text-xs font-medium text-text-muted uppercase tracking-wider';
+        label.textContent = key;
+        row.appendChild(label);
+
+        var type = config.type;
+
+        if (type === 'string') {
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.value = value !== undefined ? value : '';
+          input.className = 'w-full px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary font-sans text-sm outline-none focus:border-accent transition-colors';
+          row.appendChild(input);
+        } else if (type === 'textarea') {
+          const textarea = document.createElement('textarea');
+          textarea.rows = 3;
+          textarea.value = value !== undefined ? value : '';
+          textarea.className = 'w-full px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary font-sans text-sm outline-none focus:border-accent transition-colors resize-y';
+          row.appendChild(textarea);
+        } else if (type === 'date') {
+          const input = document.createElement('input');
+          input.type = 'date';
+          input.value = value !== undefined ? value : '';
+          input.className = 'w-full px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary font-sans text-sm outline-none focus:border-accent transition-colors';
+          row.appendChild(input);
+        } else if (type === 'select') {
+          const select = document.createElement('select');
+          select.className = 'w-full px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary font-sans text-sm outline-none focus:border-accent transition-colors';
+          (config.options || []).forEach(function(opt) {
+            const option = document.createElement('option');
+            option.value = opt;
+            option.textContent = opt;
+            if (value === opt) option.selected = true;
+            select.appendChild(option);
+          });
+          row.appendChild(select);
+        } else if (type === 'boolean') {
+          const wrap = document.createElement('label');
+          wrap.className = 'flex items-center gap-2 cursor-pointer';
+          const input = document.createElement('input');
+          input.type = 'checkbox';
+          input.checked = !!value;
+          input.className = 'w-4 h-4 accent-accent';
+          wrap.appendChild(input);
+          const span = document.createElement('span');
+          span.className = 'font-sans text-sm text-text-secondary';
+          span.textContent = value ? '开启' : '关闭';
+          input.addEventListener('change', function() { span.textContent = input.checked ? '开启' : '关闭'; });
+          wrap.appendChild(span);
+          row.appendChild(wrap);
+        } else if (type === 'array') {
+          renderContentArray(row, value || []);
+        } else if (type === 'number') {
+          const input = document.createElement('input');
+          input.type = 'number';
+          input.value = value !== undefined ? value : '';
+          if (config.min !== undefined) input.min = config.min;
+          if (config.max !== undefined) input.max = config.max;
+          input.className = 'w-full px-3 py-2 rounded-sm bg-elevated border border-border text-text-primary font-sans text-sm outline-none focus:border-accent transition-colors';
+          row.appendChild(input);
+        }
+
+        return row;
+      }
+
+      function renderContentArray(container, arr) {
+        const list = document.createElement('div');
+        list.className = 'space-y-1.5';
+
+        arr.forEach(function(item, index) {
+          const itemRow = document.createElement('div');
+          itemRow.className = 'flex items-center gap-2';
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.value = item;
+          input.className = 'flex-1 px-3 py-1.5 rounded-sm bg-elevated border border-border text-text-primary font-sans text-sm outline-none focus:border-accent transition-colors';
+          itemRow.appendChild(input);
+
+          const delBtn = document.createElement('button');
+          delBtn.textContent = '×';
+          delBtn.className = 'px-2 py-1 rounded-sm text-text-muted hover:text-red-500 hover:bg-red-500/10 font-sans text-sm transition-colors';
+          delBtn.addEventListener('click', function() { itemRow.remove(); });
+          itemRow.appendChild(delBtn);
+
+          list.appendChild(itemRow);
+        });
+
+        const addBtn = document.createElement('button');
+        addBtn.textContent = '+ 添加';
+        addBtn.className = 'px-3 py-1 rounded-sm border border-dashed border-border text-text-muted font-sans text-xs hover:text-text-primary hover:border-text-muted transition-colors';
+        addBtn.addEventListener('click', function() {
+          const itemRow = document.createElement('div');
+          itemRow.className = 'flex items-center gap-2';
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.value = '';
+          input.className = 'flex-1 px-3 py-1.5 rounded-sm bg-elevated border border-border text-text-primary font-sans text-sm outline-none focus:border-accent transition-colors';
+          itemRow.appendChild(input);
+
+          const delBtn = document.createElement('button');
+          delBtn.textContent = '×';
+          delBtn.className = 'px-2 py-1 rounded-sm text-text-muted hover:text-red-500 hover:bg-red-500/10 font-sans text-sm transition-colors';
+          delBtn.addEventListener('click', function() { itemRow.remove(); });
+          itemRow.appendChild(delBtn);
+
+          list.appendChild(itemRow);
+        });
+
+        container.appendChild(list);
+        container.appendChild(addBtn);
+      }
+
+      function getEditorData() {
+        const schema = contentSchemas[currentCollection];
+        const result = {};
+
+        Object.keys(schema).forEach(function(key) {
+          const row = document.querySelector('[data-field="' + key + '"]');
+          if (!row) return;
+          const config = schema[key];
+          var type = config.type;
+
+          if (type === 'string' || type === 'textarea' || type === 'date' || type === 'select') {
+            const input = row.querySelector('input, textarea, select');
+            result[key] = input ? input.value : '';
+          } else if (type === 'boolean') {
+            const input = row.querySelector('input[type="checkbox"]');
+            result[key] = input ? input.checked : false;
+          } else if (type === 'array') {
+            const inputs = row.querySelectorAll('input[type="text"]');
+            result[key] = Array.from(inputs).map(function(i) { return i.value; }).filter(function(v) { return v !== ''; });
+          } else if (type === 'number') {
+            const input = row.querySelector('input[type="number"]');
+            result[key] = input && input.value ? Number(input.value) : undefined;
+          }
+        });
+
+        return result;
+      }
+
+      // 新建内容
+      document.getElementById('new-content-btn').addEventListener('click', function() {
+        isNewContent = true;
+        currentEditingSlug = null;
+        document.getElementById('editor-empty').classList.add('hidden');
+        document.getElementById('editor-form').classList.remove('hidden');
+
+        const fieldsContainer = document.getElementById('editor-fields');
+        fieldsContainer.innerHTML = '';
+        const schema = contentSchemas[currentCollection];
+
+        Object.entries(schema).forEach(function([key, config]) {
+          var defaultValue;
+          if (config.type === 'boolean') defaultValue = false;
+          else if (config.type === 'array') defaultValue = [];
+          else if (config.type === 'number') defaultValue = undefined;
+          else defaultValue = '';
+
+          const field = renderContentField(key, config, defaultValue);
+          if (field) fieldsContainer.appendChild(field);
+        });
+
+        document.getElementById('editor-body').value = '';
+      });
+
+      // 取消编辑
+      document.getElementById('cancel-content-btn').addEventListener('click', hideEditor);
+
+      // 保存
+      document.getElementById('save-content-btn').addEventListener('click', function() {
+        const data = getEditorData();
+        const body = document.getElementById('editor-body').value;
+
+        // 生成 slug
+        var slug;
+        if (isNewContent) {
+          if (currentCollection === 'now') {
+            slug = data.date || new Date().toISOString().slice(0, 10);
+          } else if (currentCollection === 'memos') {
+            slug = 'memo-' + Date.now();
+          } else {
+            const title = data.title || 'untitled';
+            slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          }
+          var existing = contentData[currentCollection].find(function(i) { return i.slug === slug; });
+          if (existing) slug = slug + '-' + Date.now();
+        } else {
+          slug = currentEditingSlug;
+        }
+
+        var item = {
+          slug: slug,
+          data: data,
+          body: body,
+        };
+
+        if (isNewContent) {
+          contentData[currentCollection].push(item);
+        } else {
+          var index = contentData[currentCollection].findIndex(function(i) { return i.slug === slug; });
+          if (index >= 0) contentData[currentCollection][index] = item;
+        }
+
+        renderContentList(currentCollection);
+        alert('已保存到内存。请使用「推送到 GitHub」持久化。');
+      });
+
+      // 删除
+      document.getElementById('delete-content-btn').addEventListener('click', function() {
+        if (!currentEditingSlug) return;
+        if (!confirm('确定要删除吗？')) return;
+        contentData[currentCollection] = contentData[currentCollection].filter(function(i) { return i.slug !== currentEditingSlug; });
+        renderContentList(currentCollection);
+        hideEditor();
+      });
+
+      // Markdown 导出
+      function exportMarkdown(collection, item) {
+        var lines = ['---'];
+        Object.entries(item.data).forEach(function([key, value]) {
+          if (value === undefined || value === null || value === '') return;
+          if (Array.isArray(value)) {
+            if (value.length === 0) return;
+            lines.push(key + ':');
+            value.forEach(function(v) { lines.push('  - ' + v); });
+          } else if (typeof value === 'boolean') {
+            lines.push(key + ': ' + value);
+          } else {
+            lines.push(key + ': ' + JSON.stringify(value));
+          }
+        });
+        lines.push('---');
+        lines.push('');
+        lines.push(item.body || '');
+        return lines.join('\n');
+      }
+
+      // 内容导出按钮
+      const exportContentBtn = document.createElement('button');
+      exportContentBtn.textContent = '导出 .md';
+      exportContentBtn.className = 'px-4 py-1.5 rounded-sm border border-border text-text-secondary font-sans text-xs hover:text-text-primary hover:bg-elevated transition-colors';
+      exportContentBtn.addEventListener('click', function() {
+        if (!currentEditingSlug && !isNewContent) return;
+        var data = getEditorData();
+        var body = document.getElementById('editor-body').value;
+        var slug = isNewContent ? 'new-content' : currentEditingSlug;
+        var md = exportMarkdown(currentCollection, { data: data, body: body });
+        var blob = new Blob([md], { type: 'text/markdown' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = slug + '.md';
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      var contentHeaderActions = document.querySelector('#content-main header .flex');
+      if (contentHeaderActions) {
+        var newBtn = document.getElementById('new-content-btn');
+        if (newBtn) contentHeaderActions.insertBefore(exportContentBtn, newBtn);
+      }
+
+      // GitHub 提交（内容）
+      document.getElementById('toggle-github-content').addEventListener('click', function() {
+        var panel = document.getElementById('github-panel');
+        if (panel) panel.classList.toggle('hidden');
+      });
+    })();
+  </script>
+</AdminLayout>

@@ -1,0 +1,44 @@
+---
+---
+
+<!-- 
+  阅读进度条：
+  - h-[2px] 保持极其细窄，不抢夺视觉焦点
+  - bg-gradient-to-r + from/via/to accent 制造森林绿的微弱呼吸渐变
+  - opacity-0 默认隐藏，仅在滚动后通过 JS 移除
+  - transition-opacity duration-500 让显隐过程极其柔和
+-->
+<div 
+  id="reading-progress" 
+  class="fixed top-0 left-0 h-[2px] z-[60] opacity-0 transition-opacity duration-500 bg-gradient-to-r from-accent/20 via-accent to-accent/20" 
+  style="width: 0%"
+></div>
+
+<script>
+  (function() {
+    const progress = document.getElementById('reading-progress');
+    if (!progress) return;
+    
+    let visible = false;
+    
+    const update = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const percent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      progress.style.width = percent + '%';
+      
+      // 仅在产生实质滚动后（> 20px）悄然浮现，回顶后隐去
+      if (!visible && scrollTop > 20) {
+        visible = true;
+        progress.classList.remove('opacity-0');
+      } else if (visible && scrollTop <= 0) {
+        visible = false;
+        progress.classList.add('opacity-0');
+      }
+    };
+    
+    window.addEventListener('scroll', update, { passive: true });
+    document.addEventListener('astro:after-swap', update);
+    update();
+  })();
+</script>

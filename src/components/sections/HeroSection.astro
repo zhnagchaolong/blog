@@ -1,0 +1,19 @@
+---
+import { homepage } from '@/config/site';
+---
+
+<section class="mb-24 animate-fade-up text-center">
+  <span class="font-sans italic text-fluid-base text-text-muted block mb-4 tracking-wide">
+    {homepage.hero.subtitle}
+  </span>
+
+  <h1 class="font-sans text-fluid-2xl font-bold text-text-primary mb-6 tracking-tight leading-[1.15]">
+    {homepage.hero.titlePrefix}<span class="text-accent">{homepage.hero.titleHighlight}</span>
+  </h1>
+
+  <div class="max-w-xl mx-auto">
+    <p class="font-sans text-fluid-base text-text-secondary leading-relaxed">
+      {homepage.hero.description}
+    </p>
+  </div>
+</section>

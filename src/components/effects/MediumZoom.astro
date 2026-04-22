@@ -1,0 +1,100 @@
+<div id="zoom-backdrop" class="fixed inset-0 z-[80] hidden" aria-hidden="true">
+  <div class="absolute inset-0 bg-black/60 transition-opacity duration-300 opacity-0" id="zoom-overlay"></div>
+  <img id="zoom-clone" class="fixed z-[81] object-cover transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]" alt="" />
+</div>
+
+<script>
+  (function() {
+    const backdrop = document.getElementById('zoom-backdrop')!;
+    const overlay = document.getElementById('zoom-overlay')!;
+    const clone = document.getElementById('zoom-clone') as HTMLImageElement;
+    if (!clone) return;
+
+    let active = false;
+    let originalRect: DOMRect | null = null;
+
+    function openZoom(img: HTMLImageElement) {
+      if (active) return;
+      active = true;
+
+      originalRect = img.getBoundingClientRect();
+      const src = img.src;
+      const naturalWidth = (img as HTMLImageElement).naturalWidth || originalRect.width;
+      const naturalHeight = (img as HTMLImageElement).naturalHeight || originalRect.height;
+
+      clone.src = src;
+      clone.style.left = originalRect.left + 'px';
+      clone.style.top = originalRect.top + 'px';
+      clone.style.width = originalRect.width + 'px';
+      clone.style.height = originalRect.height + 'px';
+      clone.style.opacity = '1';
+
+      backdrop.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      // 计算目标尺寸：适配屏幕，保持比例
+      const padding = 48;
+      const maxW = window.innerWidth - padding * 2;
+      const maxH = window.innerHeight - padding * 2;
+      const ratio = naturalWidth / naturalHeight;
+      let targetW = maxW;
+      let targetH = targetW / ratio;
+      if (targetH > maxH) {
+        targetH = maxH;
+        targetW = targetH * ratio;
+      }
+      const targetLeft = (window.innerWidth - targetW) / 2;
+      const targetTop = (window.innerHeight - targetH) / 2;
+
+      requestAnimationFrame(() => {
+        overlay.classList.remove('opacity-0');
+        clone.style.left = targetLeft + 'px';
+        clone.style.top = targetTop + 'px';
+        clone.style.width = targetW + 'px';
+        clone.style.height = targetH + 'px';
+      });
+    }
+
+    function closeZoom() {
+      if (!active || !originalRect) return;
+      overlay.classList.add('opacity-0');
+
+      clone.style.left = originalRect.left + 'px';
+      clone.style.top = originalRect.top + 'px';
+      clone.style.width = originalRect.width + 'px';
+      clone.style.height = originalRect.height + 'px';
+
+      setTimeout(() => {
+        backdrop.classList.add('hidden');
+        clone.src = '';
+        document.body.style.overflow = '';
+        active = false;
+        originalRect = null;
+      }, 350);
+    }
+
+    // 事件委托：监听 .prose-zen img 点击
+    document.addEventListener('click', (e) => {
+      const img = (e.target as HTMLElement).closest('.prose-zen img, article img');
+      if (img && img.tagName === 'IMG') {
+        e.preventDefault();
+        openZoom(img as HTMLImageElement);
+      }
+    });
+
+    // 点击遮罩关闭
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop || e.target === overlay) closeZoom();
+    });
+
+    // ESC 关闭
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && active) closeZoom();
+    });
+
+    // View Transitions 后关闭
+    document.addEventListener('astro:after-swap', () => {
+      if (active) closeZoom();
+    });
+  })();
+</script>

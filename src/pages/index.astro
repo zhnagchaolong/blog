@@ -1,0 +1,28 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '@/layouts/Base.astro';
+import HeroSection from '@/components/sections/HeroSection.astro';
+import FeaturedPosts from '@/components/sections/FeaturedPosts.astro';
+import RecentMemos from '@/components/sections/RecentMemos.astro';
+import FeaturedProjects from '@/components/sections/FeaturedProjects.astro';
+import { site } from '@/config/site';
+
+const posts = await getCollection('posts', ({ data }) => !data.draft && data.featured);
+posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const recentMemos = await getCollection('memos');
+recentMemos.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const projects = await getCollection('projects', ({ data }) => data.featured);
+---
+
+<Base title="" description={site.description}>
+  <div class="-mx-6 -mt-10 pt-24 pb-8 px-6 min-h-[calc(100vh-6rem)]">
+    <div class="max-w-prose-lg mx-auto">
+      <HeroSection />
+      <FeaturedPosts posts={posts} />
+      <RecentMemos memos={recentMemos.slice(0, 3)} />
+      <FeaturedProjects projects={projects} />
+    </div>
+  </div>
+</Base>
