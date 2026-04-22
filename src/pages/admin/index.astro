@@ -258,6 +258,7 @@ const contentNavItems = [
       const raw = JSON.parse(document.getElementById('admin-initial-data').textContent);
       let data = JSON.parse(JSON.stringify(raw)); // 深拷贝，可编辑
       let currentSection = 'site';
+      const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
       // ─── 登录验证 ───
       const HASH_KEY = 'admin_pwd_hash';
@@ -291,6 +292,12 @@ const contentNavItems = [
         document.getElementById('login-view').classList.add('hidden');
         document.getElementById('admin-view').classList.remove('hidden');
         renderSection('site');
+        if (isLocalDev) {
+          const btn1 = document.getElementById('toggle-github');
+          if (btn1) btn1.textContent = '保存到本地';
+          const btn2 = document.getElementById('toggle-github-content');
+          if (btn2) btn2.textContent = '保存到本地';
+        }
       }
 
       // 设置密码
@@ -614,47 +621,61 @@ const contentNavItems = [
         }
 
         try {
-          for (const file of files) {
-            // 获取当前文件 SHA
-            let sha = null;
-            try {
-              const res = await fetch(`https://api.github.com/repos/${owner}/${repoName}/contents/${file.path}?ref=${branch}`, {
-                headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+          if (isLocalDev) {
+            for (const file of files) {
+              const res = await fetch('/api/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ path: file.path, content: file.content }),
               });
-              if (res.ok) {
-                const info = await res.json();
-                sha = info.sha;
+              if (!res.ok) {
+                const err = await res.json();
+                throw new Error(`${file.path}: ${err.error}`);
               }
-            } catch (e) { /* 文件不存在，无需 SHA */ }
-
-            // 提交文件
-            const body = {
-              message: message,
-              content: btoa(unescape(encodeURIComponent(file.content))),
-              branch: branch,
-            };
-            if (sha) body.sha = sha;
-
-            const res = await fetch(`https://api.github.com/repos/${owner}/${repoName}/contents/${file.path}`, {
-              method: 'PUT',
-              headers: {
-                'Authorization': `token ${token}`,
-                'Accept': 'application/vnd.github.v3+json',
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(body),
-            });
-
-            if (!res.ok) {
-              const err = await res.json();
-              throw new Error(`${file.path}: ${err.message}`);
             }
-          }
+            status.textContent = '保存成功！已写入本地文件，开发服务器将热重载。';
+          } else {
+            for (const file of files) {
+              // 获取当前文件 SHA
+              let sha = null;
+              try {
+                const res = await fetch(`https://api.github.com/repos/${owner}/${repoName}/contents/${file.path}?ref=${branch}`, {
+                  headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+                });
+                if (res.ok) {
+                  const info = await res.json();
+                  sha = info.sha;
+                }
+              } catch (e) { /* 文件不存在，无需 SHA */ }
 
-          status.textContent = '提交成功！GitHub Actions 将自动重新构建部署。';
+              // 提交文件
+              const body = {
+                message: message,
+                content: btoa(unescape(encodeURIComponent(file.content))),
+                branch: branch,
+              };
+              if (sha) body.sha = sha;
+
+              const res = await fetch(`https://api.github.com/repos/${owner}/${repoName}/contents/${file.path}`, {
+                method: 'PUT',
+                headers: {
+                  'Authorization': `token ${token}`,
+                  'Accept': 'application/vnd.github.v3+json',
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
+              });
+
+              if (!res.ok) {
+                const err = await res.json();
+                throw new Error(`${file.path}: ${err.message}`);
+              }
+            }
+            status.textContent = '提交成功！GitHub Actions 将自动重新构建部署。';
+          }
           status.className = 'font-sans text-xs text-green-500';
         } catch (err) {
-          status.textContent = '提交失败: ' + err.message;
+          status.textContent = (isLocalDev ? '保存失败: ' : '提交失败: ') + err.message;
           status.className = 'font-sans text-xs text-red-500';
         }
       });
@@ -1034,6 +1055,7 @@ const contentNavItems = [
       let currentCollection = 'posts';
       let currentEditingSlug = null;
       let isNewContent = false;
+      const isLocalDev2 = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
       // 视图切换
       const tabConfig = document.getElementById('tab-config');
@@ -1351,7 +1373,7 @@ const contentNavItems = [
         }
 
         renderContentList(currentCollection);
-        alert('已保存到内存。请使用「推送到 GitHub」持久化。');
+        alert(isLocalDev2 ? '已保存到内存。点击「保存到本地」写入文件。' : '已保存到内存。请使用「推送到 GitHub」持久化。');
       });
 
       // 删除
