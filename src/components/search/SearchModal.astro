@@ -12,6 +12,7 @@ import { searchConfig } from '@/config/site';
   data-type-post={searchConfig.typeLabels.post}
   data-type-memo={searchConfig.typeLabels.memo}
   data-type-project={searchConfig.typeLabels.project}
+  data-base-url={import.meta.env.BASE_URL}
 >
   <div class="absolute inset-0 bg-black/60" id="search-backdrop"></div>
 
@@ -102,9 +103,15 @@ import { searchConfig } from '@/config/site';
       }
     }
 
+    function getBaseUrl() {
+      var m = getModal();
+      return m && m.dataset.baseUrl ? m.dataset.baseUrl : '/';
+    }
+
     function renderItem(item) {
+      var baseUrl = getBaseUrl();
       if (item.type === 'post') {
-        return '<a href="/posts/' + item.slug + '/" class="block px-3 py-3 rounded-sm hover:bg-elevated transition-colors duration-150 group">' +
+        return '<a href="' + baseUrl + '/posts/' + item.slug + '/" class="block px-3 py-3 rounded-sm hover:bg-elevated transition-colors duration-150 group">' +
           '<div class="flex items-baseline justify-between gap-4">' +
             '<div class="font-sans text-sm font-medium text-text-primary group-hover:text-accent transition-colors truncate">' + item.title + '</div>' +
             '<div class="text-[11px] font-mono text-text-muted shrink-0">' + (getConfig().typePost || '文章') + '</div>' +
@@ -113,7 +120,7 @@ import { searchConfig } from '@/config/site';
         '</a>';
       }
       if (item.type === 'memo') {
-        return '<a href="/memos/#' + item.slug + '" class="block px-3 py-3 rounded-sm hover:bg-elevated transition-colors duration-150 group">' +
+        return '<a href="' + baseUrl + '/memos/#' + item.slug + '" class="block px-3 py-3 rounded-sm hover:bg-elevated transition-colors duration-150 group">' +
           '<div class="flex items-baseline justify-between gap-4">' +
             '<div class="font-sans text-sm text-text-primary line-clamp-1 group-hover:text-accent transition-colors truncate">' + (item.content || '') + '</div>' +
             '<div class="text-[11px] font-mono text-text-muted shrink-0">' + (getConfig().typeMemo || '碎念') + '</div>' +
@@ -121,7 +128,7 @@ import { searchConfig } from '@/config/site';
         '</a>';
       }
       if (item.type === 'project') {
-        return '<a href="/projects/" class="block px-3 py-3 rounded-sm hover:bg-elevated transition-colors duration-150 group">' +
+        return '<a href="' + baseUrl + '/projects/" class="block px-3 py-3 rounded-sm hover:bg-elevated transition-colors duration-150 group">' +
           '<div class="flex items-baseline justify-between gap-4">' +
             '<div class="font-sans text-sm font-medium text-text-primary group-hover:text-accent transition-colors truncate">' + item.title + '</div>' +
             '<div class="text-[11px] font-mono text-text-muted shrink-0">' + (getConfig().typeProject || '项目') + '</div>' +

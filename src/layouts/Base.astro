@@ -32,10 +32,10 @@ const ogImage = image ? new URL(image, Astro.site || site.url).toString() : unde
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={import.meta.env.BASE_URL + '/favicon.svg'} />
     <meta name="generator" content={Astro.generator} />
-    <link rel="preload" href="/fonts/lxgwwenkai-regular.ttf" as="font" type="font/ttf" crossorigin />
-    <link rel="preload" href="/fonts/jetbrains-mono-regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={import.meta.env.BASE_URL + '/fonts/lxgwwenkai-regular.ttf'} as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href={import.meta.env.BASE_URL + '/fonts/jetbrains-mono-regular.woff2'} as="font" type="font/woff2" crossorigin />
     
     <MetaTags 
       title={title} 

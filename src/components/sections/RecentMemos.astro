@@ -14,13 +14,13 @@ const { memos } = Astro.props;
   <section class="mb-20 animate-fade-up">
     <div class="flex items-center justify-between mb-8">
       <h2 class="font-sans text-fluid-lg font-semibold text-text-primary tracking-tight">{homepage.sections.recentMemosTitle}</h2>
-      <a href="/memos" class="font-sans text-base text-text-secondary hover:text-accent transition-colors duration-200">{homepage.sections.viewAllText}</a>
+      <a href={import.meta.env.BASE_URL + '/memos'} class="font-sans text-base text-text-secondary hover:text-accent transition-colors duration-200">{homepage.sections.viewAllText}</a>
     </div>
 
     <div class="divide-y divide-border/60">
       {memos.map(memo => (
         <article class="group py-4 first:pt-0 last:pb-0">
-          <a href={`/memos/#${memo.slug}`} class="block">
+          <a href={`${import.meta.env.BASE_URL}/memos/#${memo.slug}`} class="block">
             <p class="font-sans text-base text-text-primary leading-relaxed whitespace-pre-wrap group-hover:text-accent transition-colors duration-200">{memo.body}</p>
             <div class="flex items-center gap-2 mt-2 text-xs text-text-muted font-mono">
               <time datetime={memo.data.pubDate.toISOString()}>{formatDate(memo.data.pubDate)}</time>

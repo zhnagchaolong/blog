@@ -15,13 +15,13 @@ const { posts } = Astro.props;
   <section class="mb-20 animate-fade-up">
     <div class="flex items-center justify-between mb-8">
       <h2 class="font-sans text-fluid-lg font-semibold text-text-primary tracking-tight">{homepage.sections.featuredPostsTitle}</h2>
-      <a href="/posts" class="font-sans text-base text-text-secondary hover:text-accent transition-colors duration-200">{homepage.sections.viewAllText}</a>
+      <a href={import.meta.env.BASE_URL + '/posts'} class="font-sans text-base text-text-secondary hover:text-accent transition-colors duration-200">{homepage.sections.viewAllText}</a>
     </div>
 
     <div class="divide-y divide-border/60">
       {posts.map(post => (
         <article class="py-5 group">
-          <a href={`/posts/${post.slug}/`} class="block">
+          <a href={`${import.meta.env.BASE_URL}/posts/${post.slug}/`} class="block">
             <h3 class="font-sans text-lg font-medium text-text-primary group-hover:text-accent transition-colors duration-200 mb-1.5 tracking-tight leading-snug">
               {post.data.title}
             </h3>

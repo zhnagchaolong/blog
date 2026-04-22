@@ -2,12 +2,18 @@
 import { navigation, ariaLabels } from '@/config/site';
 
 const currentPath = Astro.url.pathname;
-
 const navItems = navigation.items;
+const basePath = import.meta.env.BASE_URL;
+
+function normalizePath(path: string) {
+  return path.startsWith(basePath) ? path.slice(basePath.length) || '/' : path;
+}
 
 function isActive(href: string) {
-  if (href === '/') return currentPath === '/';
-  return currentPath.startsWith(href);
+  const current = normalizePath(currentPath);
+  const target = normalizePath(href);
+  if (target === '/') return current === '/';
+  return current.startsWith(target);
 }
 ---
 
@@ -19,14 +25,14 @@ function isActive(href: string) {
   <div class="max-w-layout mx-auto px-4 md:px-6">
     <div class="flex items-center justify-between h-16 px-3 md:px-5 transition-colors duration-300">
 
-      <a href="/" class="font-sans text-2xl font-bold text-text-primary tracking-tight shrink-0 mr-6 hover:text-accent transition-colors duration-200">
+      <a href={basePath + '/'} class="font-sans text-2xl font-bold text-text-primary tracking-tight shrink-0 mr-6 hover:text-accent transition-colors duration-200">
         {navigation.logo}
       </a>
 
       <div class="hidden md:flex items-center gap-1">
         {navItems.map((item) => (
           <a
-            href={item.href}
+            href={item.href === '/' ? basePath + '/' : basePath + item.href}
             class={`relative px-3 py-1.5 text-lg font-sans font-large transition-colors duration-200 rounded-sm ${
               isActive(item.href)
                 ? 'text-accent'
@@ -70,7 +76,7 @@ function isActive(href: string) {
     <div id="mobile-menu" class="md:hidden hidden mt-1 bg-surface border border-border rounded-sm p-2">
       {navItems.map((item) => (
         <a
-          href={item.href}
+          href={item.href === '/' ? basePath + '/' : basePath + item.href}
           class="flex items-center justify-between px-4 py-2.5 rounded-sm text-base font-sans font-medium text-text-secondary hover:text-accent transition-colors duration-200"
           data-active={isActive(item.href)}
         >

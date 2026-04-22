@@ -7,6 +7,7 @@ import { transformerNotationHighlight } from '@shikijs/transformers';
 
 export default defineConfig({
   site: 'https://zhnagchaolong.github.io/blog',
+  base: '/blog',
   output: 'static',
   prefetch: true,
   i18n: {

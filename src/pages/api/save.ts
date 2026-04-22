@@ -2,7 +2,9 @@ import type { APIRoute } from 'astro';
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 
-export const prerender = false;
+export const GET: APIRoute = () => {
+  return new Response('ok', { status: 200 });
+};
 
 export const POST: APIRoute = async ({ request }) => {
   // 仅在开发模式下可用
