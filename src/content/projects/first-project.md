@@ -1,5 +1,5 @@
 ---
-title: 思考室
+title: 我的小空间
 description: 你正在浏览的这个小站本身。一个基于 Astro 5.x 的沉浸式个人博客系统，主张 Zero Runtime JS 与 Typography-first 设计哲学。
 techStack:
   - Astro
@@ -8,7 +8,7 @@ techStack:
   - Shiki
 link: ""
 github: "https://github.com/zhnagchaolong/blog"
-featured: true
+featured: false
 startDate: 2026-04-01
 endDate: ""
 status: active
