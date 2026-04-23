@@ -1,23 +1,44 @@
 {
   "site": {
-    "name": "思考室",
+    "name": "ZCLlife",
     "description": "沉浸式个人思考室 —— 技术、设计与哲学的数字花园",
     "url": "https://zhnagchaolong.github.io/blog",
     "author": "博主",
     "email": "hello@example.com",
     "language": "zh-CN",
     "defaultLocale": "zh",
-    "locales": ["zh", "en"]
+    "locales": [
+      "zh",
+      "en"
+    ]
   },
   "navigation": {
     "logo": "思考室",
     "items": [
-      { "href": "/", "label": "首页" },
-      { "href": "/posts", "label": "文章" },
-      { "href": "/now", "label": "Now" },
-      { "href": "/archive", "label": "归档" },
-      { "href": "/tags", "label": "标签" },
-      { "href": "/about", "label": "关于" }
+      {
+        "href": "/",
+        "label": "首页"
+      },
+      {
+        "href": "/posts",
+        "label": "文章"
+      },
+      {
+        "href": "/now",
+        "label": "Now"
+      },
+      {
+        "href": "/archive",
+        "label": "归档"
+      },
+      {
+        "href": "/tags",
+        "label": "标签"
+      },
+      {
+        "href": "/about",
+        "label": "关于"
+      }
     ]
   },
   "homepage": {
@@ -81,6 +102,13 @@
     "enableOGImage": true
   },
   "pageMeta": {
+    "404": {
+      "title": "404",
+      "description": "页面不存在",
+      "heading": "回到首页",
+      "labelPrefix": "",
+      "subtitle": "这页笔记似乎被风吹散了"
+    },
     "about": {
       "title": "关于",
       "description": "关于这间数字思考室",
@@ -137,13 +165,6 @@
       "labelPrefix": "Tags",
       "subtitle": "共 {count} 个原子标签，{total} 篇文章"
     },
-    "404": {
-      "title": "404",
-      "description": "页面不存在",
-      "heading": "回到首页",
-      "labelPrefix": "",
-      "subtitle": "这页笔记似乎被风吹散了"
-    },
     "tagDetail": {
       "title": "",
       "description": "",
@@ -172,22 +193,55 @@
       "techStack": {
         "label": "Tech Stack",
         "items": [
-          { "name": "Astro", "category": "Framework" },
-          { "name": "TypeScript", "category": "Language" },
-          { "name": "Tailwind CSS", "category": "Style" },
-          { "name": "Neovim", "category": "Editor" },
-          { "name": "Git", "category": "Tool" },
-          { "name": "Figma", "category": "Design" }
+          {
+            "name": "Astro",
+            "category": "Framework"
+          },
+          {
+            "name": "TypeScript",
+            "category": "Language"
+          },
+          {
+            "name": "Tailwind CSS",
+            "category": "Style"
+          },
+          {
+            "name": "Visual Stuidio Code",
+            "category": "Editor"
+          },
+          {
+            "name": "Git",
+            "category": "Tool"
+          },
+          {
+            "name": "Figma",
+            "category": "Design"
+          }
         ]
       },
       "setup": {
         "label": "The Desk",
         "items": [
-          { "item": "Editor", "detail": "Neovim + tmux" },
-          { "item": "Terminal", "detail": "WezTerm + zsh" },
-          { "item": "Keyboard", "detail": "Keychron Q1 Pro" },
-          { "item": "Display", "detail": "27\" 4K + 24\" 竖屏" },
-          { "item": "OS", "detail": "macOS + Arch Linux" }
+          {
+            "item": "Editor",
+            "detail": "Neovim + tmux"
+          },
+          {
+            "item": "Terminal",
+            "detail": "WezTerm + zsh"
+          },
+          {
+            "item": "Keyboard",
+            "detail": "Keychron Q1 Pro"
+          },
+          {
+            "item": "Display",
+            "detail": "27\" 4K + 24\" 竖屏"
+          },
+          {
+            "item": "OS",
+            "detail": "macOS + Arch Linux"
+          }
         ]
       },
       "contact": {
