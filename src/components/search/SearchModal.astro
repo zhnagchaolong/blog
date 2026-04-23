@@ -66,7 +66,8 @@ import { searchConfig } from '@/config/site';
     async function load() {
       if (loaded) return;
       try {
-        const res = await fetch('/search.json');
+        const baseUrl = getBaseUrl();
+        const res = await fetch(baseUrl + '/search.json');
         data = await res.json();
         loaded = true;
       } catch (e) {
