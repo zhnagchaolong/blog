@@ -6,11 +6,9 @@ techStack:
   - Tailwind CSS
   - TypeScript
   - Shiki
-link: ""
 github: "https://github.com/zhnagchaolong/blog"
 featured: true
 startDate: 2026-04-01
-endDate: ""
 status: active
 ---
 
