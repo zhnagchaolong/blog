@@ -34,7 +34,7 @@ const tags = Array.from(tagMap.entries()).sort((a, b) => a[0].localeCompare(b[0]
       <div class="flex flex-wrap gap-x-5 gap-y-4 leading-loose">
         {tags.map(([tag, count]) => (
           <a
-            href={`/tags/${tag}/`}
+            href={`${import.meta.env.BASE_URL}/tags/${tag}/`}
             class="group inline-flex items-baseline gap-0.5 font-mono text-base text-text-secondary hover:text-accent transition-colors duration-200"
           >
             <span>{tag}</span>
@@ -57,7 +57,7 @@ const tags = Array.from(tagMap.entries()).sort((a, b) => a[0].localeCompare(b[0]
                     .filter(([t]) => t.charAt(0).toUpperCase() === letter)
                     .map(([tag, count]) => (
                       <a
-                        href={`/tags/${tag}/`}
+                        href={`${import.meta.env.BASE_URL}/tags/${tag}/`}
                         class="group flex items-baseline justify-between font-mono text-base text-text-secondary hover:text-accent transition-colors duration-200"
                       >
                         <span>{tag}</span>

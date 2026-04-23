@@ -1,3 +1,4 @@
+<!-- From: E:\myblog\AGENTS.md -->
 # AGENTS.md — 思考室（Immersive Personal Blog）
 
 > 本文件面向 AI 编程助手。如果你正在阅读此文件，说明你对本项目一无所知——以下信息将帮助你快速建立上下文，避免假设与泛化。
@@ -8,7 +9,7 @@
 
 **思考室**是一个基于 Astro 5.x 的沉浸式个人博客（数字花园），主张 **Zero Runtime JS** 与 **Typography-first** 的设计哲学。站点以中文为主要内容语言，同时支持英文双语切换。设计上强调「慢阅读」体验：大量留白、衬线体正文、无衬线标题、细腻的暗色模式与极简交互。
 
-当前站点占位域名为 `https://example.com`，在 `astro.config.mjs` 的 `site` 字段以及多处 SEO 组件中硬编码，部署前务必替换为真实域名。
+当前站点地址为 `https://zhnagchaolong.github.io/blog`，在 `astro.config.mjs` 的 `site` 和 `base` 字段中配置（`base: '/blog'`）。部署前若更换域名或路径，需同步修改 `astro.config.mjs`、`src/config/site.json` 以及多处 SEO 组件中的 URL 逻辑。
 
 ---
 
@@ -37,35 +38,41 @@
 
 ```
 myblog/
-├── astro.config.mjs          # Astro 主配置（站点、i18n、集成、Markdown）
+├── astro.config.mjs          # Astro 主配置（站点、base、i18n、集成、Markdown）
 ├── tailwind.config.mjs       # Tailwind 配置（自定义颜色、字体、动画、prose）
 ├── tsconfig.json             # TypeScript 配置（继承 astro/tsconfigs/strict）
 ├── package.json              # 依赖与脚本（无测试框架）
+├── .github/workflows/
+│   └── deploy.yml            # GitHub Pages 自动部署工作流
 ├── public/
 │   ├── fonts/                # LXGW WenKai + JetBrains Mono 字体文件
 │   ├── favicon.svg
 │   └── robots.txt
 ├── src/
 │   ├── components/           # Astro 组件（按职责分组）
-│   │   ├── content/          # 内容相关：Prose、Toc、ReadingProgress、CodeCopy、SeriesNav、Aside
-│   │   ├── effects/          # 视觉/交互效果：CanvasCursor、MediumZoom、ScrollToTop
-│   │   ├── layout/           # 布局辅助：PageHeader
+│   │   ├── content/          # 内容相关：Prose、Toc、ReadingProgress、CodeCopy、SeriesNav、Aside、CodeHeader
+│   │   ├── effects/          # 视觉/交互效果：MediumZoom、ScrollToTop
+│   │   ├── layout/           # 布局辅助：BackLink、PageHeader
 │   │   ├── navigation/       # 导航：NavDock、LanguageSwitcher
 │   │   ├── search/           # 搜索：SearchModal
 │   │   ├── seo/              # SEO：MetaTags、JsonLd
-│   │   ├── transitions/      # （预留空目录）
-│   │   └── ui/               # （预留空目录）
+│   │   └── sections/         # 首页区块：FeaturedPosts、FeaturedProjects、HeroSection、RecentMemos
+│   ├── config/               # 站点配置中心
+│   │   ├── site.json         # 站点核心配置（导航、首页、搜索、功能开关、页面 Meta、SEO 等）
+│   │   ├── site.ts           # site.json 的 TypeScript 包装器（保持向后兼容）
+│   │   ├── labels.json       # 标签映射表（分类、Aside 类型、状态配置）
+│   │   ├── labels.ts         # labels.json 的 TypeScript 包装器
+│   │   └── constants.ts      # 全局常量（滚动阈值、导航安全区等）
 │   ├── content/              # Astro 内容集合（四态内容池）
 │   │   ├── config.ts         # Zod Schema 定义（posts / memos / projects / now）
 │   │   ├── posts/            # 深度长文（Markdown）
 │   │   ├── memos/            # 碎念短笔记（Markdown）
 │   │   ├── projects/         # 项目展示（Markdown）
 │   │   └── now/              # 当下状态（Markdown）
-│   ├── i18n/
-│   │   └── ui.ts             # 双语 UI 文案表与 useTranslations 辅助函数
 │   ├── layouts/
 │   │   ├── Base.astro        # 根布局（HTML 骨架、主题切换、全局脚本、NavDock/SearchModal）
-│   │   └── Post.astro        # 文章页布局（目录、系列导航、上下篇、延伸阅读、阅读进度）
+│   │   ├── Post.astro        # 文章页布局（目录、系列导航、上下篇、延伸阅读、阅读进度）
+│   │   └── AdminLayout.astro # 管理后台布局（无 SEO、屏蔽搜索引擎）
 │   ├── pages/                # 文件系统路由
 │   │   ├── index.astro       # 首页（精选文章、碎念、项目）
 │   │   ├── about.astro       # 关于页（Bento Grid 布局）
@@ -74,6 +81,10 @@ myblog/
 │   │   ├── 404.astro
 │   │   ├── rss.xml.ts        # RSS 动态端点
 │   │   ├── search.json.ts    # 搜索索引动态端点
+│   │   ├── admin/
+│   │   │   └── index.astro   # 管理后台（配置与内容可视化编辑）
+│   │   ├── api/
+│   │   │   └── save.ts       # 开发模式文件写入 API（供 Admin 本地保存）
 │   │   ├── memos/
 │   │   │   └── index.astro   # 碎念时间轴（双栏交替布局）
 │   │   ├── now/
@@ -92,7 +103,7 @@ myblog/
 │   │   └── global.css        # Tailwind 指令 + CSS 变量 + 自定义排版类 .prose-zen
 │   └── utils/
 │       ├── date.ts           # formatDate（zh-CN 长格式）
-│       └── readingTime.ts    # getReadingTime（300 字/分钟，中文字符 + 英文单词）
+│       └── readingTime.ts    # getReadingTime（300 字/分钟，基于 reading-time 库）
 ```
 
 ---
@@ -112,7 +123,7 @@ npm run preview    # astro preview
 
 **注意**：
 - 本项目没有任何测试命令或测试框架配置。
-- 构建产物为纯静态文件，可直接部署到任何静态托管服务（Vercel、Netlify、Cloudflare Pages、GitHub Pages 等）。
+- 构建产物为纯静态文件，可直接部署到任何静态托管服务。
 - OG 图片生成依赖构建时的 Node.js 环境（读取 `public/fonts/lxgwwenkai-regular.ttf`），因此需要在支持 Node 运行时的环境中构建。
 
 ---
@@ -181,7 +192,27 @@ energy: number?        # 1-10
 - 正文使用标准 Markdown，支持 GFM（表格、脚注、`~~删除线~~`、任务列表）。
 - 代码块使用 Shiki 高亮，支持 `[!code highlight:3]` 等行高亮语法（`@shikijs/transformers`）。
 - 脚注会被自动渲染为自定义样式（见 `.prose-zen .footnotes`）。
-- 文章正文字数统计算法：`中文字符数 + 英文单词数`。
+- 文章正文字数统计算法由 `reading-time` 库处理，默认 300 字/分钟。
+
+---
+
+## 配置系统
+
+本项目采用 **JSON 中心化配置**，所有可变文案与开关集中在 `src/config/site.json` 和 `src/config/labels.json` 中，通过 TypeScript 包装器导出：
+
+| 配置域 | 文件 | 说明 |
+|--------|------|------|
+| 站点身份/导航/首页/搜索/功能开关/页面 Meta/SEO/About/项目文案 | `src/config/site.json` → `site.ts` | 运行时通过 `import { site, navigation, features, ... } from '@/config/site'` 读取 |
+| 分类标签/Aside 类型/状态配置 | `src/config/labels.json` → `labels.ts` | 运行时通过 `import { categoryLabels, statusConfig, ... } from '@/config/labels'` 读取 |
+| 滚动/导航阈值 | `src/config/constants.ts` | 纯常量，不可在 Admin 中编辑 |
+
+**管理后台（`/admin`）**：
+- 提供可视化编辑 `site.json` 与 `labels.json` 的能力。
+- 提供可视化编辑四态内容池的能力（新建、修改、删除 Markdown 内容）。
+- 首次访问需设置密码（SHA-256 存储于 `localStorage`）。
+- **本地开发**：点击「保存到本地」调用 `/api/save` 直接写入文件系统，开发服务器将热重载。
+- **生产环境**：点击「推送到 GitHub」通过 GitHub Contents API 直接提交文件，触发 GitHub Actions 重新构建部署。
+- 生产推送需要：仓库名（`username/repo`）、分支（默认 `main`）、GitHub PAT（Personal Access Token）。PAT 仅存储在浏览器 `localStorage` 中。
 
 ---
 
@@ -210,7 +241,7 @@ energy: number?        # 1-10
 ### Tailwind 配置要点
 - `darkMode: 'class'` —— 通过 `html.dark` 类手动控制暗色模式，而非媒体查询。
 - 自定义颜色全部基于 CSS 变量（`--bg-base`、`--text-primary`、`--accent` 等），支持平滑过渡。
-- 自定义字体族：`font-sans`（Inter + 系统字体 + PingFang SC/Microsoft YaHei）、`font-serif`（LXGW WenKai + Noto Serif SC）、`font-mono`（JetBrains Mono）。
+- 自定义字体族：`font-sans`（LXGW WenKai + Noto Serif SC + Georgia）、`font-serif`（同上）、`font-mono`（JetBrains Mono）。
 - 自定义字号：`fluid-xs` 到 `fluid-2xl`，使用 `clamp()` 实现流式排版。
 - 自定义动画：`animate-fade-up`、`animate-ghost-in`。
 
@@ -227,7 +258,7 @@ energy: number?        # 1-10
   /* ... */
 }
 html.dark {
-  --bg-base: 10 11 12;
+  --bg-base: 18 18 20;
   --text-primary: 220 220 220;
   --accent: 125 211 190;       /* 薄荷绿 */
   /* ... */
@@ -237,7 +268,7 @@ html.dark {
 ### 排版类 `.prose-zen`
 这是整个站点的核心阅读排版引擎，定义于 `global.css` 的 `@layer components` 中。它覆盖：
 - 标题层级（`h1`–`h4`，无衬线体，大间距呼吸感）
-- 段落（衬线体，1.8 行高）
+- 段落（无衬线体，1.8 行高）
 - 链接（细下划线，悬浮加深）
 - 引用块（斜粗干 + 森林绿左边框 + 渐变背景 + 自动添加中文引号「」）
 - 图片（圆角 + 边框 + 悬浮效果）
@@ -252,8 +283,7 @@ html.dark {
 
 - 配置位于 `astro.config.mjs`：默认语言 `zh`，支持 `['zh', 'en']`。
 - `prefixDefaultLocale: false` —— 中文页面无 `/zh/` 前缀，英文页面以 `/en/` 开头。
-- UI 文案集中管理于 `src/i18n/ui.ts`，通过 `useTranslations(lang)` 获取翻译函数。
-- 目前仅 NavDock 与 SearchModal 等少量组件使用了 i18n 文案；大量硬编码中文仍分布在页面模板中。
+- UI 文案已全面迁移至 `src/config/site.json` 集中管理（如 `pageMeta`、`postConfig.labels`、`searchConfig` 等），不再使用单独的 `src/i18n/ui.ts`。
 - 语言切换器组件 `LanguageSwitcher.astro` 通过替换 URL 前缀实现跳转。
 
 ---
@@ -266,7 +296,7 @@ html.dark {
 - RSS 订阅地址：`/rss.xml`，由 `src/pages/rss.xml.ts` 生成。
 - 站点地图通过 `@astrojs/sitemap` 自动生成。
 
-**部署前必须修改**：将 `astro.config.mjs` 中的 `site: 'https://example.com'` 替换为真实域名，同时检查 `Base.astro` 和 `MetaTags.astro` 中的默认 URL 回退逻辑。
+**部署前必须修改**：若更换域名或 base 路径，需同步更新 `astro.config.mjs` 中的 `site` 和 `base`，以及 `src/config/site.json` 中的 `url`。
 
 ---
 
@@ -290,9 +320,9 @@ html.dark {
 | 阅读位置恢复 | `Post.astro` | `localStorage['scroll-pos:' + pathname]` |
 | 代码复制 | `CodeCopy.astro` | 监听 `pre` 悬浮，写入剪贴板 |
 | 图片缩放 | `MediumZoom.astro` | 点击 `img` → DOMRect 动画克隆 |
-| 光标光晕 | `CanvasCursor.astro` | Canvas 2D 径向渐变，跟随鼠标 Lerp |
 | 滚动显隐导航 | `NavDock.astro` | 向下滚动隐藏，向上滚动显示 |
 | 回到顶部 | `ScrollToTop.astro` | 滚动超过 60% 视口高度时显示 |
+| 搜索 | `SearchModal.astro` | `Cmd/Ctrl+K` 打开，客户端索引匹配 |
 
 **重要**：所有监听 `scroll` 的脚本都使用了 `{ passive: true }`，且通过 `requestAnimationFrame` 节流。在 Astro View Transitions 环境下，页面切换后需要重新绑定的事件都已通过 `document.addEventListener('astro:after-swap', ...)` 处理。
 
@@ -313,12 +343,15 @@ html.dark {
 
 ### 部署
 - 输出目录：`dist/`（纯静态 HTML/CSS/JS/图片）。
-- 无服务端依赖，无需 Node.js 运行时。
+- 无服务端依赖，运行时无需 Node.js。
 - OG 图片生成仅在**构建时**发生，运行时无需字体文件或 Satori。
+- 已配置 GitHub Actions 工作流（`.github/workflows/deploy.yml`），推送至 `main` 分支后自动构建并部署到 GitHub Pages。
 
 ### 安全注意事项
 - **XSS**：搜索模态框使用 `innerHTML` 直接拼接结果字符串（`SearchModal.astro`）。当前数据源为构建时静态 JSON，风险可控；若未来允许用户提交内容，必须转义 HTML。
 - **外部链接**：项目卡片中的 `link` / `github` 使用 `target="_blank"`，但没有添加 `rel="noopener noreferrer"`。建议补充。
+- **Admin 安全**：管理后台密码通过 SHA-256 存储在浏览器 `localStorage` 中，仅用于前端拦阻，不具备服务端安全强度。生产环境若需更高安全性，应增加服务端鉴权层。
+- **API 安全**：`/api/save.ts` 仅在开发模式（`!import.meta.env.PROD`）下可用，且限制写入路径必须以 `src/` 开头、禁止 `..` 目录遍历。
 - **敏感文件**：`.env` 文件被 Astro 默认保护；当前项目未使用环境变量。
 
 ---
@@ -327,15 +360,18 @@ html.dark {
 
 | 场景 | 操作位置 |
 |------|----------|
-| 修改站点标题/域名 | `astro.config.mjs` → `site`；`Base.astro`、`MetaTags.astro` |
-| 修改导航项 | `src/i18n/ui.ts` + `NavDock.astro` |
-| 新增内容集合字段 | `src/content/config.ts` + 对应页面查询逻辑 |
+| 修改站点标题/域名/base 路径 | `astro.config.mjs` → `site`/`base`；`src/config/site.json` → `url`；`Base.astro`、`MetaTags.astro` |
+| 修改导航项 | `src/config/site.json` → `navigation.items` |
+| 修改页面文案（标题、副标题、标签） | `src/config/site.json` → `pageMeta` / `postConfig.labels` / `searchConfig` |
+| 修改分类/状态标签 | `src/config/labels.json` → `categoryLabels` / `statusConfig` |
+| 新增内容集合字段 | `src/content/config.ts` + 对应页面查询逻辑 + `admin/index.astro` 中的 schema |
 | 调整文章排版 | `src/styles/global.css` → `.prose-zen` |
 | 调整暗色/亮色配色 | `src/styles/global.css` → `:root` / `html.dark` |
 | 调整 OG 图片样式 | `src/pages/og/[...slug].png.ts` |
 | 添加新页面 | `src/pages/` 下创建 `.astro` 文件 |
 | 添加新组件 | `src/components/` 下按职责放入子目录 |
+| 修改 Admin 后台行为 | `src/pages/admin/index.astro`（内置原生 JS 管理面板） |
 
 ---
 
-*最后更新：2026-04-22*
+*最后更新：2026-04-23*

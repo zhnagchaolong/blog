@@ -40,7 +40,7 @@ const currentNum = currentIndex + 1;
         const isCurrent = post.slug === currentSlug;
         return (
           <a
-            href={`/posts/${post.slug}/`}
+            href={`${import.meta.env.BASE_URL}/posts/${post.slug}/`}
             class={`flex items-center gap-3 py-1.5 px-2 rounded-lg transition-colors duration-200 ${
               isCurrent
                 ? 'bg-accent/10 text-accent'
