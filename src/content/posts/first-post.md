@@ -1,13 +1,17 @@
 ---
-title: "构建零运行时博客的哲学"
-description: "为什么在现代前端工程中，我们更应当追求删除代码，而非增加代码。Astro 的 Islands 架构给了我们这个机会。"
+title: 构建零运行时博客的哲学
+description: 为什么在现代前端工程中，我们更应当追求删除代码，而非增加代码。Astro 的 Islands 架构给了我们这个机会。
 pubDate: 2026-04-20
 category: tech
-tags: ["astro", "performance", "architecture"]
-featured: true
-toc: true
+tags:
+  - astro
+  - performance
+  - architecture
 relatedPosts:
-  - "second-post"
+  - second-post
+featured: true
+draft: false
+toc: true
 ---
 
 在 Web 开发领域，我们似乎陷入了一种悖论：为了让网站更快，我们不断地加入更多的 JavaScript——框架、库、打包器、优化器，层层叠叠。[^1] 最终，用户下载的代码量反而呈指数级增长。
