@@ -1,6 +1,6 @@
 {
   "site": {
-    "name": "思考室aa",
+    "name": "ZCLlife",
     "description": "沉浸式个人思考室 —— 技术、设计与哲学的数字花园",
     "url": "https://zhnagchaolong.github.io/blog",
     "author": "博主",
@@ -206,7 +206,7 @@
             "category": "Style"
           },
           {
-            "name": "Neovim",
+            "name": "Visual Stuidio Code",
             "category": "Editor"
           },
           {
