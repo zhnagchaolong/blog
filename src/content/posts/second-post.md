@@ -1,13 +1,17 @@
 ---
-title: "数字花园的灌溉法则"
-description: "关于知识管理、笔记系统以及如何在信息洪流中建立属于自己的思考秩序。"
+title: 数字花园的灌溉法则
+description: 关于知识管理、笔记系统以及如何在信息洪流中建立属于自己的思考秩序。
 pubDate: 2026-04-18
 category: philosophy
-tags: ["pkm", "thinking", "writing"]
-featured: true
-toc: true
+tags:
+  - pkm
+  - thinking
+  - writing
 relatedPosts:
-  - "first-post"
+  - first-post
+featured: true
+draft: false
+toc: true
 ---
 
 我们每天摄入的信息量，可能超过了 19 世纪一位学者一生的阅读量。但信息不等于知识，收藏不等于掌握。
