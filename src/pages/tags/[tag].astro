@@ -30,7 +30,7 @@ const { tag, taggedPosts } = Astro.props;
 
 <Base title={`${pageMeta.tags.title}：${tag}`} description={`包含「${tag}」标签的所有文章`}>
   <div class="max-w-prose-lg mx-auto">
-    <BackLink href={import.meta.env.BASE_URL + '/tags'} />
+    <BackLink href={import.meta.env.BASE_URL + '/tags/'} />
 
     <PageHeader
       label={`${pageMeta.tagDetail.labelPrefix} / ${String(taggedPosts.length).padStart(3, '0')}`}

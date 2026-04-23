@@ -2,7 +2,6 @@
 import { getCollection } from 'astro:content';
 import Base from '@/layouts/Base.astro';
 import PageHeader from '@/components/layout/PageHeader.astro';
-import BackLink from '@/components/layout/BackLink.astro';
 import { categoryMeta } from '@/config/labels';
 import { pageMeta } from '@/config/site';
 
@@ -22,8 +21,6 @@ const categories = ['tech', 'design', 'philosophy', 'essay'].filter(c => categor
 
 <Base title={pageMeta.ideas.title} description={pageMeta.ideas.description}>
   <div class="max-w-prose-lg mx-auto">
-    <BackLink />
-
     <PageHeader
       label={`${pageMeta.ideas.labelPrefix} / ${String(posts.length).padStart(3, '0')}`}
       title={pageMeta.ideas.heading}
@@ -37,7 +34,7 @@ const categories = ['tech', 'design', 'philosophy', 'essay'].filter(c => categor
         const latest = catPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())[0];
         return (
           <a
-            href={import.meta.env.BASE_URL + '/posts'}
+            href={import.meta.env.BASE_URL + '/posts/'}
             class="group block p-8 rounded-md bg-surface border border-border/50 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:border-accent/20"
           >
             <div class="flex items-start justify-between gap-4 mb-4">

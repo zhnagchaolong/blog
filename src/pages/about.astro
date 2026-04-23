@@ -1,7 +1,6 @@
 ﻿---
 import Base from '@/layouts/Base.astro';
 import { pageMeta, aboutConfig } from '@/config/site';
-import BackLink from '@/components/layout/BackLink.astro';
 
 const techStack = aboutConfig.cards.techStack.items;
 const setup = aboutConfig.cards.setup.items;
@@ -9,8 +8,6 @@ const setup = aboutConfig.cards.setup.items;
 
 <Base title={pageMeta.about.title} description={pageMeta.about.description}>
   <div class="max-w-prose-lg mx-auto">
-    <BackLink />
-
     <header class="mb-12 animate-fade-up">
       <h1 class="font-sans text-fluid-2xl font-bold text-text-primary mb-4 tracking-tight">{pageMeta.about.heading}</h1>
       <p class="font-sans text-fluid-base text-text-secondary">{pageMeta.about.subtitle}</p>

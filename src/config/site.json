@@ -20,23 +20,23 @@
         "label": "首页"
       },
       {
-        "href": "/posts",
+        "href": "/posts/",
         "label": "文章"
       },
       {
-        "href": "/now",
+        "href": "/now/",
         "label": "Now"
       },
       {
-        "href": "/archive",
+        "href": "/archive/",
         "label": "归档"
       },
       {
-        "href": "/tags",
+        "href": "/tags/",
         "label": "标签"
       },
       {
-        "href": "/about",
+        "href": "/about/",
         "label": "关于"
       }
     ]

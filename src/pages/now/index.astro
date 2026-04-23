@@ -2,7 +2,6 @@
 import { getCollection } from 'astro:content';
 import Base from '@/layouts/Base.astro';
 import PageHeader from '@/components/layout/PageHeader.astro';
-import BackLink from '@/components/layout/BackLink.astro';
 import { formatDate } from '@/utils/date';
 import { statusConfig } from '@/config/labels';
 import type { StatusKey } from '@/config/labels';
@@ -29,8 +28,6 @@ function energyDots(energy: number) {
 
 <Base title={pageMeta.now.title} description={pageMeta.now.description}>
   <div class="max-w-prose-lg mx-auto">
-    <BackLink />
-
     <PageHeader
       label={`${pageMeta.now.labelPrefix} / ${String(entries.length).padStart(3, '0')}`}
       title={pageMeta.now.heading}

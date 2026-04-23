@@ -3,7 +3,6 @@ import { getCollection } from 'astro:content';
 import Base from '@/layouts/Base.astro';
 import PageHeader from '@/components/layout/PageHeader.astro';
 import { pageMeta } from '@/config/site';
-import BackLink from '@/components/layout/BackLink.astro';
 
 const posts = await getCollection('posts', ({ data }) => !data.draft);
 
@@ -21,8 +20,6 @@ const tags = Array.from(tagMap.entries()).sort((a, b) => a[0].localeCompare(b[0]
 
 <Base title={pageMeta.tags.title} description={pageMeta.tags.description}>
   <div class="max-w-prose-lg mx-auto">
-    <BackLink />
-
     <PageHeader
       label={`${pageMeta.tags.labelPrefix} / ${String(tags.length).padStart(3, '0')}`}
       title={pageMeta.tags.heading}

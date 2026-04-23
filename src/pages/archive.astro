@@ -2,7 +2,6 @@
 import { getCollection } from 'astro:content';
 import Base from '@/layouts/Base.astro';
 import PageHeader from '@/components/layout/PageHeader.astro';
-import BackLink from '@/components/layout/BackLink.astro';
 import { getReadingTime } from '@/utils/readingTime';
 import { pageMeta } from '@/config/site';
 import { categoryLabels } from '@/config/labels';
@@ -23,8 +22,6 @@ const years = Object.keys(postsByYear).sort((a, b) => Number(b) - Number(a));
 
 <Base title={pageMeta.archive.title} description={pageMeta.archive.description}>
   <div class="max-w-prose-lg mx-auto">
-    <BackLink />
-
     <PageHeader
       label={`${pageMeta.archive.labelPrefix} / ${String(posts.length).padStart(3, '0')}`}
       title={pageMeta.archive.heading}
