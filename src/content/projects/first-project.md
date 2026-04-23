@@ -7,7 +7,7 @@ techStack:
   - TypeScript
   - Shiki
 github: "https://github.com/zhnagchaolong/blog"
-featured: false
+featured: true
 startDate: 2026-04-01
 status: active
 ---
